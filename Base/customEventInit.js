@@ -5,6 +5,8 @@ var copyEvents = function(eventsObj){
 	// You'd have to re-engineer this thing in order to check "has own" before modifying the cbs
 
 	// let's just clobber it for now
+
+	// or, a much simpler solution than trying to make this prototype linkage work:  just make a full copy...  this would be good for an init module?
 };
 
 var customEventInit = module.exports = function(){

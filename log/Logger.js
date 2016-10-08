@@ -92,13 +92,18 @@ var Logger = Base.extend({
 	},
 
 	wrapMethod: function(name, fn){
-		var log = this,
+		var _log = this,
 			argNames = getParamNames(fn),
 			wrapped = function(){
-				var ret;
+				var ret,
+					log = this.log || _log;
 				if (!log.shouldLog(this))
 					return fn.apply(this, arguments);
-				log.method(this, name, arguments, argNames);
+				if (log.collapse)
+					log.methodc(this, name, arguments, argNames);
+				else
+					log.method(this, name, arguments, argNames);
+
 				ret = fn.apply(this, arguments);
 				log.ret(ret);
 				return ret;
@@ -106,6 +111,9 @@ var Logger = Base.extend({
 
 		wrapped.wrapped = true;
 		return wrapped;
+	},
+	xwrapMethod: function(name, fn){
+		return fn;
 	},
 
 	method: function(ctx, name, args, argNames){
@@ -158,7 +166,15 @@ var Logger = Base.extend({
 			this.log("  return", retValue);
 		}
 
+	},
+
+	method: function(name, value){
+		
 	}
+});
+
+Logger.Method = Base.extend({
+
 });
 
 module.exports = Logger;
