@@ -5,12 +5,34 @@ var $body = $("body");
 var $root = $(".root").addClass("outlines");
 require("./styles.less");
 
-require("logger");
+// require("logger");
 
-var EE = require("events");
-console.log(EE);
+// var IPBCLE = require("./core/IPBCLE");
+// var log = IPBCLE();
+// log.group("test");
 
-log("hello world");
+var Logger = require("./log/Logger");
+var log = new Logger();
+
+log.log("yo");
+log.group("group");
+log.end(function(){
+	log.info("info");
+	log.warn("warn");
+	log.group("sub group");
+	log.end(function(){
+		log.error("error");
+		log.debug("debug");
+	});
+	log.trace("trace");
+	log.groupc("collapsed");
+	log.end(function(){
+		log.log('yerp');
+	});
+	log.info("end of first group");
+});
+
+
 
 var Tabs = require("./components/Tabs");
 

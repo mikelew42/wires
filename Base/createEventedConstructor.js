@@ -14,6 +14,7 @@ var createConstructor = function(name){
 	if (!(this instanceof " + name + "))\r\n\
 		return new (" + name + ".bind.apply(" + name + ", prepArgsForConstructor(arguments)));\r\n\
 	events.call(this);\r\n\
+	this._events = {}; // to prevent any leakage \r\n\
 	this.create.apply(this, arguments);\r\n\
 });");
 	constructor.assign = assign;
