@@ -1,5 +1,7 @@
 var globule = require('globule');
 var path = require("path");
+// var MyPlugin = require("./MyPlugin");
+
 
 var entry = {
   // "./public/main": './src/entry.js'
@@ -28,6 +30,9 @@ module.exports = {
       { test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" }
     ]
   }
+  // ,plugins: [
+  //   new MyPlugin({options: 'nada'})
+  // ]
   // ,
   // devServer: {
     // historyApiFallback: true

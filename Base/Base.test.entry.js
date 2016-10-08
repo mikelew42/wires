@@ -2,8 +2,8 @@ require("../jasmine");
 
 var Base = require("./Base");
 var Evented = require("./Evented");
-
-// Base.log = true;
+var Filterable = require("./Filterable");
+var Logged = require("./Logged");
 
 describe("Base", function describeBase(){
 	it("should be a function", function aLottaWork(){
@@ -120,5 +120,137 @@ describe("Evented", function(){
 		expect(tests.evnt).toBe(true);
 
 		// console.log(base);
-	});	
+	});
+});
+
+describe("Filterable", function(){
+	it("should allow filters", function(){
+		var f = Filterable({
+			filterName: function(value){
+				return this.applyFilter("filterName", value);
+			}
+		}), tests = {};
+
+		expect(f.filterName(1)).toBe(1);
+
+		f.filter("filterName", function(value){
+			expect(this).toBe(f);
+			return value + 3;
+		});
+
+		expect(f.filterName(8)).toBe(11);
+
+		f.filter("filterName", function(value){
+			return value * 2 - 8;
+		});
+
+		// + 3, * 2, -8...
+		expect(f.filterName(1)).toBe(0);
+	});
+
+	it("should allow additional args", function(){
+		var f = Filterable();
+		f.filter("my-filter", function(a, b, c){
+			expect(a).toBe(1);
+			expect(b).toBe(true);
+			expect(c).toBe("three");
+			return 2;
+		});
+		expect(f.applyFilter("my-filter", 1, true, "three")).toBe(2);
+	});
+
+	it("the events constructor is broken...", function(){
+		var f1 = Filterable(), test = { count: 0 };
+		f1.filter("my-filter", function(value){
+			test.count++;
+			return value;
+		});
+
+		expect(test.count).toBe(0);
+		f1.applyFilter("my-filter");
+		expect(test.count).toBe(1);
+
+		var obj = Object.create(f1);
+		require("events").call(obj);
+
+		expect(test.count).toBe(1);
+		obj.applyFilter("my-filter");
+		expect(test.count).toBe(2);
+
+		// as shown here, the prototype _events object is copied over to the new instance
+		// this could be a nice feature, but unfortunately there's risk of interference with the base class...
+
+	});
+});
+
+describe("Logged", function(){
+	it("should be a constructor", function(){
+		expect(Logged() instanceof Logged).toBe(true);
+	});
+
+	it("should have an assign filter", function(){
+		var l = Logged(), test = {};
+		l.filter("assign", function(value, name){
+			test.value = value;
+			test.name = name;
+			return value;
+		});
+
+		l.assign({ yo: "diggity" });
+
+		expect(test.value).toBe("diggity");
+		expect(test.name).toBe("yo");
+	});
+
+	it("should wrap prototype properties assigned with assign", function(){
+		var test = {};
+		var L2 = Logged.extend({
+			name: "L2",
+			wrappedTwice: function(one, two){
+				test.one = true;
+				return one + " asdf " + two;
+			}
+		});
+
+		var l1 = L2();
+		l1.wrappedTwice(123, "asdf");
+		expect(test.one).toBe(true);
+
+		var l = L2({
+				name: "l",
+				wrappedTwice: function(a, b){
+					test.two = true;
+					return a + b;
+				}
+			});
+		
+		l.wrappedTwice(1, "two");
+		expect(test.two).toBe(true);
+	});
+
+	// has to be verified visually...
+	xit("should automatically wrap assigned functions", function(){
+		var L2 = Logged.extend({
+				amIWrapped: function(){
+					console.log("amIWrapped?");
+				}
+			}),
+			l = L2({
+				yep: function(){
+
+				}
+			}), 
+			test = {};
+		
+		l.assign({
+			name: "l",
+			myMethod: function(a, b, c){
+				return a + 2 * b - c;
+			}
+		});
+
+		l.myMethod(1, 8, 123);
+		l.yep();
+		l.amIWrapped();
+	});
 });
