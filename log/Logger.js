@@ -109,11 +109,11 @@ var Logger = Base.extend({
 	},
 
 	method: function(ctx, name, args, argNames){
-		this.group.apply(0, this.buildMethodLabelArray(name, args, argNames));
+		this.group.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
 	},
 
 	methodc: function(ctx, name, args, argNames){
-		this.groupc.apply(0, this.buildMethodLabelArray(name, args, argNames));
+		this.groupc.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
 	},
 
 	buildMethodLabelArray: function(ctx, name, args, argNames){
