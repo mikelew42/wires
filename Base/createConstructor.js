@@ -1,6 +1,6 @@
 var prepArgsForConstructor = require("./prepArgsForConstructor");
 var assign = require("./assign");
-
+var track = require("./track");
 // TODO make this a normal function, use fn.toString() and then some str replacing 
 // to allow a normal function to be passed, that uses a special.. "Constructor" name
 // as the placeholder for the variable name?
@@ -15,6 +15,8 @@ var createConstructor = function(name){
 });");
 	constructor.assign = assign;
 	constructor.prototype.assign = assign;
+	track.call(constructor);
+	track.call(constructor.prototype);
 	return constructor;
 }
 

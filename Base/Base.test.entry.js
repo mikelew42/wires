@@ -4,6 +4,8 @@ var Base = require("./Base");
 var Evented = require("./Evented");
 var Filterable = require("./Filterable");
 var Logged = require("./Logged");
+var Module = require("./Module");
+var is = require("../is");
 
 describe("Base", function describeBase(){
 	it("should be a function", function aLottaWork(){
@@ -262,6 +264,14 @@ describe("Logged", function(){
 
 	});
 
+	xit("should recursively extend", function(){
+		var L2 = Logged.extend();
+
+		expect(Logged.Logger).toBeDefined();
+
+		// expect(L2.Logger).toBeDefined();
+	});
+
 	// has to be verified visually...
 	xit("should automatically wrap assigned functions", function(){
 		var L2 = Logged.extend({
@@ -286,5 +296,98 @@ describe("Logged", function(){
 		l.myMethod(1, 8, 123);
 		l.yep();
 		l.amIWrapped();
+	});
+});
+
+
+describe("Module", function(){
+	xit("constructors, prototypes, and instances, should all have IDs", function(){
+		var test = {},
+			Mod = Module.extend(),
+			mod = Mod();
+
+		// console.log(Module.id, Module.prototype.id, Mod.id, Mod.prototype.id, mod.id);
+	});
+
+	it("should have extend events", function(){
+		var test = {},
+			Mod = Module.extend({
+				name: "Mod",
+				config: function(){
+					this.events.on("setupPrototype", function(){
+						test.one = true;
+					});
+				},
+				Sub: Module.extend({
+					name: "Sub",
+					subProp: 1,
+					SubSub: Module.extend({
+						name: "SubSub",
+						subSubProp: 2
+					}).assign({
+						prop: "SubSub.prop"
+					})
+				}).assign({
+					prop: "Sub.prop"
+				})
+			});
+
+		expect(test.one).toBe(true);
+
+		expect(Mod.Sub).toBeDefined();
+		expect(Mod.Sub.prop).toBe("Sub.prop");
+		expect(Mod.Sub.extend).toBeDefined();
+		expect(Mod.Sub).toBe(Mod.prototype.Sub);
+
+		expect(Mod.Sub.SubSub.extend).toBeDefined();
+		expect(Mod.Sub.SubSub.prop).toBe("SubSub.prop");
+		expect(Mod.Sub.SubSub).toBe(Mod.Sub.prototype.SubSub);
+
+		expect(new Mod.Sub().SubSub).toBe(Mod.Sub.SubSub);
+
+
+		var Mod2 = Mod.extend({
+			name: "Mod2"
+		});
+
+		expect(Mod2.base).toBe(Mod);
+		expect(Mod2.Sub.prop).toBe("Sub.prop");
+		// console.dir(Mod)
+		// console.dir(Mod2);
+
+		expect(Mod2.Sub).not.toBe(Mod.Sub);
+		expect(new Mod2.Sub() instanceof Mod.Sub).toBe(true);
+		expect(Mod2.Sub.base).toBe(Mod.Sub);
+		expect(Mod2.Sub).toBe(Mod2.prototype.Sub);
+
+		expect(Mod2.Sub.SubSub).not.toBe(Mod.Sub.SubSub);
+		expect(Mod2.Sub.SubSub.prop).toBe("SubSub.prop");
+		expect(Mod2.Sub.SubSub).toBe(Mod2.Sub.prototype.SubSub);
+		expect(new Mod2.Sub.SubSub() instanceof Mod.Sub.SubSub).toBe(true);
+
+		var Mod3 = Mod.extend({ name: "Mod3" });
+		expect(Mod3.Sub).not.toBe(Mod2.Sub);
+		expect(Mod3.Sub.SubSub).not.toBe(Mod2.Sub.SubSub);
+
+		var Mod4 = Mod2.extend({ name: "Mod4" });
+		expect(Mod4.Sub).not.toBe(Mod2.Sub);
+		expect(Mod4.Sub.SubSub).not.toBe(Mod2.Sub.SubSub);
+
+		var Mod5 = Mod.extend({
+			name: "Mod5",
+			Sub: Mod.Sub.extend({
+				name: "Mod5Sub",
+				SubSub: Mod.Sub.SubSub.extend({
+					name: "Mod5SubSub"
+				}).assign({
+					prop: "Mod5SubSub.prop"
+				})
+			}).assign({
+				prop: "Mod5Sub.prop"
+			})
+		});
+
+		expect(Mod5.Sub.prop).toBe("Mod5Sub.prop");
+		expect(Mod5.Sub.SubSub.prop).toBe("Mod5SubSub.prop");
 	});
 });

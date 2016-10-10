@@ -3,6 +3,7 @@ var is = require("../is");
 var noop = function(){};
 var getParamNames = require("./getParamNames");
 var Method = require("./Method");
+var Module = require("../Base/Module");
 
 var methods = [
 	{
@@ -32,14 +33,13 @@ var methods = [
 	}
 ];
 
-
-
-
-
-var Logger = Base.extend({
+var Logger = Module.extend({
 	name: "Logger",
 	_shouldLog: true,
 	Method: Method,
+	config: function(){
+
+	},
 	init: function(){
 		this.initMethods();
 	},
@@ -211,9 +211,8 @@ var Logger = Base.extend({
 			{ log: this }
 		).wrapper();
 	}
-}).assign({
-	Method: Method
 });
+
 
 /*
 
