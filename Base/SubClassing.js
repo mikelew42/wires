@@ -21,11 +21,6 @@ var Sub = Module.Sub.extend({
 })
 
 var MyModule = Module.extend({
-	// prototype methods
-	init: function(){
-		// allows instance-based overrides, or fallback to the constructor
-		this.SubClass = this.SubClass;
-	},
 	inst_sub: function(o){
 		this.sub = this.Sub(o); 
 	},
@@ -35,6 +30,20 @@ var MyModule = Module.extend({
 	Sub: Sub
 });
 // this may be a little extra work, but in the light of transparency...
+
+
+// extending 
+
+var Sub = MyModule.Sub.extend({
+
+});
+
+var MyModule2 = MyModule.extend({
+	Sub: Sub
+}).assign({
+	Sub: Sub
+});
+
 
 
 

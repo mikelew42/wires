@@ -212,7 +212,7 @@ describe("Logged", function(){
 			}
 		});
 
-		var l1 = L2();
+		var l1 = L2({ name: "l1" });
 		l1.wrappedTwice(123, "asdf");
 		expect(test.one).toBe(true);
 

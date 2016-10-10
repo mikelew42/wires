@@ -31,11 +31,18 @@ var Logged = Filterable.extend({
 	name: "Logged",
 	create: create,
 	assign: eventedAssign
+}).assign({
+	both: function(){
+		this.prototype.assign.apply(this.prototype, arguments);
+		this.assign.apply(this, arguments);
+		return this;
+	}
 });
 
 Logged.log = Logger({
 
 });
+
 
 Logged.prototype.log = Logged.log;
 

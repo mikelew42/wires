@@ -1,10 +1,9 @@
-var Base = require("../Base");
+var Base = require("../Base/Logged");
 var Link = require("./Link");
 var history = require("history").createBrowserHistory();
 
 var Route = module.exports = Base.extend({
 	name: "Route",
-	log: false,
 	label: "Default Route Label",
 	init: function(){
 		this.cbs = [];

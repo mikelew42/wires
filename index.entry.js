@@ -5,13 +5,6 @@ var $body = $("body");
 var $root = $(".root").addClass("outlines");
 require("./styles.less");
 
-var fnc = function(){
-
-};
-fnc.toString().split("").forEach(function(char){
-	console.log(char, char.charCodeAt());
-});
-
 // require("logger");
 
 // var IPBCLE = require("./core/IPBCLE");
