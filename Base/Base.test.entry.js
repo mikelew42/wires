@@ -228,6 +228,40 @@ describe("Logged", function(){
 		expect(test.two).toBe(true);
 	});
 
+	it("should copy itself when extended", function(){
+		var test = {},
+			L2 = Logged.extend({
+				name: "L2",
+				prototypeMethod: function(){
+					console.log("inside L2.prototypeMethod");
+					this.log.log("eww, this.log.log(???)")
+				}
+			});
+
+		expect(Logged.log).toBe(Logged.prototype.log);
+		expect(L2.log).toBe(L2.prototype.log);
+		expect(L2.log).not.toBe(Logged.log);
+
+		var l2 = L2({
+			name: "l2",
+			instanceMethod: function(firstArg, secondArg){
+				console.log("inside l2.instanceMethod()");
+				this.log.info("here's some info");
+				this.prototypeMethod();
+				return firstArg + secondArg;
+			}
+		});
+
+		l2.instanceMethod("one", true, 3, {four: 4});
+
+		// realtime cases vs pre-extend cases
+		// if you turn Logged.log.off() inside the Logged file, all loggers will be off, unless you turn them .on()
+
+		// however, for a specific .log instance, you can turn it on/off in realtime.  It all depends if there's a log per Class or per instance
+
+
+	});
+
 	// has to be verified visually...
 	xit("should automatically wrap assigned functions", function(){
 		var L2 = Logged.extend({

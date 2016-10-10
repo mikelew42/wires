@@ -7,8 +7,7 @@ var createConstructor = require("./createEventedConstructor");
 var events = require("events");
 
 var _log, log = _log = Logger({
-	contain: true,
-	collapse: true,
+	
 });
 
 var create = function(o){
@@ -34,6 +33,12 @@ var Logged = Filterable.extend({
 	assign: eventedAssign
 });
 
+Logged.log = Logger({
+
+});
+
+Logged.prototype.log = Logged.log;
+
 Logged.extend = log.wrapMethod("extend", function(o){
 	var name, props, Ext, logArgs;
 
@@ -49,6 +54,7 @@ Logged.extend = log.wrapMethod("extend", function(o){
 	Ext.base = this;
 	Ext.prototype.type = name;
 
+// this.emit("extended");
 	// enable fn wrapping, by enabling events on the prototype
 	// this allows us to use the eventedAssign
 	// in fact, these 3 lines of code should be a pluggable event...
@@ -57,6 +63,12 @@ Logged.extend = log.wrapMethod("extend", function(o){
 	Ext.prototype._events = {}; // clobber it to prevent any leakage
 	initLogged.call(Ext.prototype);
 
+	if (this.log){
+		console.log("copying Constructor.log");
+		Ext.log = Ext.prototype.log = this.log.copy();
+		console.log(Ext.log);
+	}
+
 
 
 	Ext.prototype.assign.apply(Ext.prototype, arguments);
@@ -64,4 +76,4 @@ Logged.extend = log.wrapMethod("extend", function(o){
 });
 
 
-module.exports = Logged;
+module.exports = Logged.extend();

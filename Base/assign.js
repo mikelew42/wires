@@ -7,6 +7,7 @@ var assign = function(){
 			this[j] = arguments[i][j];
 		}
 	}
+	return this;
 };
 
 module.exports = assign;

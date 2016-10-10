@@ -5,6 +5,13 @@ var $body = $("body");
 var $root = $(".root").addClass("outlines");
 require("./styles.less");
 
+var fnc = function(){
+
+};
+fnc.toString().split("").forEach(function(char){
+	console.log(char, char.charCodeAt());
+});
+
 // require("logger");
 
 // var IPBCLE = require("./core/IPBCLE");
@@ -48,7 +55,7 @@ var tabs = new Tabs().addTabs({
 		label: "Test 3"
 	}
 });
-console.log(tabs);
+console.debug(tabs);
 tabs.test1.$el.html("<h1>Test 1</h1>");
 tabs.test2.$el.html("<h1>Test 2</h1>");
 tabs.test3.$el.html("<h1>Test 3</h1>");
