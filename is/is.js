@@ -54,6 +54,9 @@ var is = {
 	},
 	simple: function(value){ // aka non-referential
 		return typeof value !== 'object' && !is.fn(value); // null, NaN, or other non-referential values?
+	},
+	Class: function(value){
+		return value && value.prototype && value.prototype.create;
 	}
 };
 

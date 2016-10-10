@@ -7,6 +7,7 @@ var eventedAssign = function(){
 			this[j] = this.applyFilter("assign", arguments[i][j], j);
 		}
 	}
+	return this;
 };
 
 module.exports = eventedAssign;
