@@ -2,6 +2,7 @@ var Base = require("../Base");
 var is = require("../is");
 var noop = function(){};
 var getParamNames = require("./getParamNames");
+var Method = require("./Method");
 
 var methods = [
 	{
@@ -32,9 +33,13 @@ var methods = [
 ];
 
 
+
+
+
 var Logger = Base.extend({
 	name: "Logger",
 	_shouldLog: true,
+	Method: Method,
 	init: function(){
 		this.initMethods();
 	},
@@ -206,6 +211,8 @@ var Logger = Base.extend({
 			{ log: this }
 		).wrapper();
 	}
+}).assign({
+	Method: Method
 });
 
 /*
@@ -392,32 +399,5 @@ This way, every instance has a reference to it internally
 
 */
 
-Logger.Method = Base.extend({
-	init: function(){
-		this.argNames = getParamNames(this.method);
-	},
-	wrapper: function(){
-		var _log = this.log,
-			argNames = this.argNames,
-			methodLogger = this;
-			wrapped = function(){
-				var ret,
-					log = this.log || _log; // in case a wrapped method is called with a context that doesn't have its own logger...
-				if (!log.shouldLog(this))
-					return fn.apply(this, arguments);
-				if (log.expand)
-					log.method(this, name, arguments, argNames);
-				else
-					log.methodc(this, name, arguments, argNames);
-
-				ret = fn.apply(this, arguments);
-				log.ret(ret);
-				return ret;
-			};
-
-		wrapped.wrapped = true;
-		return wrapped;
-	}
-});
 
 module.exports = Logger;
