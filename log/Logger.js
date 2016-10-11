@@ -35,13 +35,14 @@ var methods = [
 
 var Logger = Module.extend({
 	name: "Logger",
-	_shouldLog: true,
 	Method: Method,
 	config: function(){
 
 	},
 	init: function(){
 		this.initMethods();
+		if (this.skip)
+			this.off();
 	},
 	initMethods: function(){
 		var method, consoleName; 
@@ -81,7 +82,7 @@ var Logger = Module.extend({
 			method = methods[i];
 			this[method.name] = noop;
 		}
-		this._shouldLog = false;
+		this.skip = true;
 	},
 
 	on: function(){
@@ -90,15 +91,8 @@ var Logger = Module.extend({
 			method = methods[i];
 			this[method.name] = this["$" + method.name];
 		}
-		this._shouldLog = true;
+		this.skip = false;
 	},
-
-	shouldLog: function(obj){
-		if (is.def(obj.log))
-			return obj.log; // true or false
-		return this._shouldLog;
-	},
-
 
 	method: function(ctx, name, args, argNames){
 		this.group.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
@@ -182,7 +176,7 @@ var Logger = Module.extend({
 			wrapped = function(){
 				var ret,
 					log = this.log || _log;
-				if (!log.shouldLog(this))
+				if (log.skip)
 					return fn.apply(this, arguments);
 				if (log.expand)
 					log.method(this, name, arguments, argNames);

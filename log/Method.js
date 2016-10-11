@@ -1,8 +1,9 @@
 var Base = require("../Base");
+var getParamNames = require("./getParamNames");
 
 var Method = module.exports = Base.extend({
 	init: function(){
-		this.argNames = getParamNames(this.method);
+		this.argNames = getParamNames(this.method || function(){});
 	},
 	wrapper: function(){
 		var _log = this.log,

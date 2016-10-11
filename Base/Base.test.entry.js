@@ -190,6 +190,43 @@ describe("Logged", function(){
 		expect(Logged() instanceof Logged).toBe(true);
 	});
 
+	it("should have a .log syncd between prototype and Constructor", function(){
+		var Logger = require("../log/Logger"), Method = require("../log/Method");
+		expect(Logged.log instanceof Logger).toBe(true);
+		expect(Logged.log).toBe(Logged.prototype.log);
+		expect(Logged.Logger.Method).toBe(Logged.log.Method);
+		expect(new Logged.log.Method() instanceof Method).toBe(true);
+
+		var L2 = Logged.extend();
+
+		expect(L2.log instanceof Logger).toBe(true);
+		expect(L2.log).toBe(L2.prototype.log);
+		expect(L2.log).not.toBe(Logged.log);
+		expect(L2.Logger.Method).toBe(L2.log.Method);
+		expect(new L2.log.Method() instanceof Method).toBe(true);
+		expect(L2.log.Method).not.toBe(Logged.log.Method);
+
+	});
+
+	it("should be configurable in different ways", function(){
+		var L = Logged.extend();
+
+		L.log.log("yo");
+		L.log.off();
+
+		var L2 = L.extend();
+		L2.log.log("L is off, L2 should still be on");
+
+		L.log.log("can you see me?");
+		L.log.on();
+		L.log.log("yo");
+
+		var L3 = Logged.extend();
+		L3.Logger.prototype.skip = true;
+
+		L3.log.log("can you see L3?");
+	});
+
 	it("should have an assign filter", function(){
 		var l = Logged(), test = {};
 		l.filter("assign", function(value, name){
