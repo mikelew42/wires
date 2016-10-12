@@ -33,28 +33,30 @@ var methods = [
 	}
 ];
 
+var Test = Module.extend({
+	name: "Test",
+	one: 1,
+	two: 2,
+	init: function(){
+		this.log.log(this.one + this.two);
+	}
+});
+
 var Logger = Module.extend({
 	name: "Logger",
 	Method: Method,
+	Test: Test,
 	config: function(){
-
+		// this === Class
+		this.events.on("extended", function(Ext){
+			// Ext === the new class
+			Ext.on = Ext.prototype.on.bind(Ext.prototype);
+			Ext.off = Ext.prototype.off.bind(Ext.prototype);
+		});
 	},
 	init: function(){
-		this.initMethods();
-		if (this.skip)
-			this.off();
-	},
-	initMethods: function(){
-		var method, consoleName; 
-		for (var i in methods){
-			method = methods[i];
-			consoleName = method.consoleName || method.name;
-			this[method.name] = console[consoleName].bind(console);
-			this["$" + method.name] = this[method.name];
-			this["x" + method.name] = noop;
-		}
-
-		this.methods = {}; // config for specific methods
+		// if (this.skip)
+		// 	this.off();
 	},
 
 	copy: function(){
@@ -68,6 +70,10 @@ var Logger = Module.extend({
 		}
 
 		return new this.constructor(ownProps); // "new" keyword is required here!!
+	},
+
+	test: function(o){
+		new this.Test(o, {log: this});
 	},
 
 	end: function(fn){
@@ -207,8 +213,31 @@ var Logger = Module.extend({
 	}
 });
 
+var initMethods = function(){
+	var method, consoleName; 
+	for (var i in methods){
+		method = methods[i];
+		consoleName = method.consoleName || method.name;
+		this[method.name] = console[consoleName].bind(console);
+		this["$" + method.name] = this[method.name];
+		
+// !!! This should be suppress.
+		this["x" + method.name] = noop;
+	}
+
+	//  this.methods = {}; // config for specific methods
+};
+
+initMethods.call(Logger.prototype);
 
 /*
+
+Logger.prototype.log, .debug, .warn, .error, etc, will be bound to the console, and they don't need to be overridden on the .log instances.
+
+The .log.$methods shouldn't ever be overwritten...
+
+
+
 
 Should the Logger.Method look at this.log.methods[this.name] in order to obey configuration in real time?
 

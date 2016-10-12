@@ -9,6 +9,10 @@ var _Module = Filterable.extend({
 		// this.events.on("setupPrototype", function(){
 		// 	console.log("Module.events.setupPrototype");
 		// });
+	},
+	both: function(){
+		this.prototype.assign(this.prototype, arguments);
+		this.assign.apply(this, arguments);
 	}
 });
 

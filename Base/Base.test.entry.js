@@ -211,20 +211,87 @@ describe("Logged", function(){
 	it("should be configurable in different ways", function(){
 		var L = Logged.extend();
 
-		L.log.log("yo");
+		console.log(1);
+		L.log.log(1);
+
+		console.log(3);
+		L.log.test();
+
+		console.log(8);
+		L.log.test({
+			one: 3,
+			two: 5
+		});
+
 		L.log.off();
+		L.log.error("you should not see me");
 
-		var L2 = L.extend();
-		L2.log.log("L is off, L2 should still be on");
+		var L2 = L.extend({
+			// Logger: L.Logger.extend({
+			// 	Test: L.Logger.Test.extend({
+			// 		one: 5,
+			// 		two: 8
+			// 	})
+			// })
+			// this works, but its inefficient.  lets try a different way...
+		});
 
-		L.log.log("can you see me?");
+
+// actually, this way is less efficient, currently, because the prototype.Subs are auto .extended onto the new .prototype AFTER assign, and only if !hasOwn.  Basically, in this case, the Logger and Test are auto .extended, and THEN we replace the Test module, causing the auto .extended Test to be replaced, discarded, and hopefully garbage collected.  Not a huge deal, but the above way should be perfectly efficient, because we don't auto .extend, since we assign the new one directly, and then it "hasOwn"
+		L2.Logger.both({
+			Test: L2.Logger.Test.extend({})
+		});
+
+		console.log(2);
+		L2.log.log(2);
+
+		console.log(13);
+		L2.log.test();
+
+		L.log.error("L2 is on, but L should still be off!!");
+
 		L.log.on();
-		L.log.log("yo");
+		
+		console.log(3);
+		L.log.log(3);
 
 		var L3 = Logged.extend();
-		L3.Logger.prototype.skip = true;
+		
+		console.log(123);
+		L3.log.log(123);
+		L3.Logger.prototype.off();
 
-		L3.log.log("can you see L3?");
+		L3.log.error("You should not see me!!");
+
+		var L4 = L3.extend();
+		L4.log.error("this should be off");
+		L3.log.error("this should be off");
+
+		L3.log.on();
+		console.log(11);
+		L3.log.log(11);
+		L4.log.error("this should be off");
+
+		console.log(12);
+		L3.log.log(12);
+		/*
+		Can I attempt a styled log Sub class?
+
+Logger.Message
+Logger.msg()
+this.log.msg(o)
+	new this.Message(o, {log: this});
+
+// at the very least, this helps vet the whole sub classing, config, and instantiation...
+
+
+		Order of configuration:
+		When we .extend a Logged class, we're extending the sub classes as well.  AT THE TIME OF .EXTENSION, THE CONFIGURATION OF THE LOGGER, AND ITS SUB CLASSES, IS COPIED..
+
+		If you want future classes to inherit config of sub classes, you have to configure them BEFORE extending.  This shouldn't be hard to do.  You can configure the sub classes during the creation of the base class.
+
+		Then, when we modify a 
+		*/
 	});
 
 	it("should have an assign filter", function(){
