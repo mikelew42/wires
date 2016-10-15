@@ -1,3 +1,5 @@
+console.groupCollapsed("Logged.js");
+
 var Filterable = require("./Filterable");
 var Module = require("./Module");
 var eventedAssign = require("./eventedAssign.js");
@@ -13,17 +15,46 @@ var _log, log = _log = Logger({
 });
 
 var create = function(o){
+	console.groupCollapsed( ((o && o.name) || this.name) + " = new " + this.constructor.name + "(", arguments, ")");
 	track.call(this);
 	initMethodAutoWrapper.call(this);
 	this.assign.apply(this, arguments);
 	this.init && this.init();
+	console.groupEnd();
 };
 
 var initMethodAutoWrapper = function(){
 	this.filter("assign", function(value, name){
 		var log = this.log || _log;
 		if (is.fn(value) && !value.wrapped && !value.extend){
-			return log.wrapMethod(name, value);
+			return log.__method({
+				name: name,
+				method: value
+			});
+		}
+		return value;
+	});
+};
+
+var initLoggerIntercept = function(){
+	this.filter("assign", function(value, name){
+		// this should only run for the prototype
+		// this === prototype
+		if (name === "Logger")
+			this.constructor.log = this.log = new value();
+		return value;
+	});
+};
+
+var initSubClassElevationFilter = function(){
+	this.filter("assign", function(value, name){
+		// this should only run for the prototype
+		// this === prototype
+		if ((is.fn(value) && value.extend) || name === "methods"){
+			if (i === "constructor")
+				return value;
+
+			this.constructor[name] = value;
 		}
 		return value;
 	});
@@ -40,7 +71,8 @@ var Logged = Module.extend({
 			// wrap this with init_log, to make it easy to extend?
 			// but, we want this to run on extend, not for each instance
 			// console.log("Logged.events.extended -> creating Logged.log");
-			Ext.log = Ext.prototype.log = new Ext.prototype.Logger();
+			if (!Ext.prototype.hasOwnProperty("log"))
+				Ext.log = Ext.prototype.log = new Ext.prototype.Logger();
 			// if you modify Logger class in an unintelligent way (something that won't be inherited automatically), then you need to recreate this log instance
 				// modifying the prototype should be legit...
 				// log.Method, for example
@@ -54,10 +86,17 @@ var Logged = Module.extend({
 			events.call(Ext.prototype);
 			Ext.prototype._events = {}; // clobber it!
 
-			initMethodAutoWrapper.call(Ext.prototype)
+			initMethodAutoWrapper.call(Ext.prototype);
+			initLoggerIntercept.call(Ext.prototype);
+			initSubClassElevationFilter.call(Ext.prototype);
 		});
 	},
-	Logger: Logger.extend()
+	Logger: Logger.extend({
+		name: "Loggedr",
+		Method: Logger.Method.extend({
+
+		})
+	})
 });
 
 
@@ -102,6 +141,10 @@ var Logged = Module.extend({
 // 	return Ext;
 // });
 
-Logged.log.off();
-module.exports = Logged.extend();
-Logged.log.on();
+// Logged.log.off();
+// module.exports = Logged.extend();
+// Logged.log.on();
+
+module.exports = Logged;
+
+console.groupEnd();

@@ -19,10 +19,13 @@ var extend = module.exports = {
 	},
 	subbable: function(o){
 		var Ext = extend.createEventedConstructor(extend.name(o, this));
+		console.groupCollapsed(Ext.name + " extends " + this.name);
+		console.trace();
 		extend.setupSubbableConstructor(Ext, this, o);
 		extend.createPrototype(Ext, this);
 		extend.setupSubbablePrototype(Ext, this, arguments);
-		Ext.events.emit("extended", Ext);
+		Ext.events.emit("extended", Ext, this);
+		console.groupEnd();
 		return Ext;
 	},
 	name: function(o, Base){
@@ -65,8 +68,31 @@ var extend = module.exports = {
 	},
 	setupSubbablePrototype: function(Ext, Base, args){ 
 		Ext.events.emit("setupPrototype", Ext, Base, args);
-		Ext.prototype.assign.apply(Ext.prototype, args);
+		extend.recursiveExtend(Ext, args);
+		// Ext.prototype.assign.apply(Ext.prototype, args);
 		extend.elevateProtoClasses(Ext);
+	},
+	// this is basically just the eventedAssign function
+	recursiveExtend: function(Ext, args){
+		var arg, prop;
+		// allow multiple objects
+		for (var i = 0; i < args.length; i++){
+			arg = args[i];
+			// loop over each property
+			for (var propName in arg){
+				propValue = arg[propName];
+				// if the prototype[prop] is a Sub class, and the incoming property is an object, then pass that obj to extend, and replace the prototype[prop] with the new class
+				if (is.fn(Ext.prototype[propName]) && Ext.prototype[propName].extend && is.obj(propValue) ){
+					console.log("recursiveExtending");
+					Ext.prototype[propName] = 
+						Ext.prototype.applyFilter("recursiveExtend", Ext.prototype[propName].extend(propValue), propName);
+				} else {
+					// assign it to this
+					Ext.prototype[propName] = Ext.prototype.applyFilter("assign", propValue, propName);
+				}
+			}
+		}
+		return this;
 	},
 	elevateProtoClasses: function(Ext){
 		var prop;
@@ -79,8 +105,10 @@ var extend = module.exports = {
 				if (!Ext.prototype.hasOwnProperty(i)){
 					Ext.prototype[i] = prop.extend();
 				}
+
 				// sync sub classes to constructor
-				Ext[i] = Ext.prototype[i];
+				if (Ext[i] !== Ext.prototype[i])
+					Ext[i] = Ext.prototype[i];
 			}
 		}
 	},

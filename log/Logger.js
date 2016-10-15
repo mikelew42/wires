@@ -42,21 +42,41 @@ var Test = Module.extend({
 	}
 });
 
+var extendMethods = function(methods){
+	var newMethods = {};
+
+	for (var i in methods){
+		newMethods[i] = methods[i].extend({
+			name: methods[i].name // resets the name to avoid ClassExtExtExtExt...
+		});
+	}
+
+	return newMethods;
+};
+
 var Logger = Module.extend({
 	name: "Logger",
 	Method: Method,
 	Test: Test,
+	methods: {},
 	config: function(){
+		console.groupCollapsed("Logger.config");
 		// this === Class
-		this.events.on("extended", function(Ext){
+		this.events.on("extended", function(Ext, Base){
 			// Ext === the new class
 			Ext.on = Ext.prototype.on.bind(Ext.prototype);
 			Ext.off = Ext.prototype.off.bind(Ext.prototype);
+
+
+			Ext.methods = Ext.prototype.methods = extendMethods(Ext.prototype.methods);
 		});
+
+		console.groupEnd();
 	},
 	init: function(){
-		// if (this.skip)
-		// 	this.off();
+		this.methods = extendMethods(this.methods);
+		if (this.skip)
+			this.off();
 	},
 
 	copy: function(){
@@ -100,82 +120,6 @@ var Logger = Module.extend({
 		this.skip = false;
 	},
 
-	method: function(ctx, name, args, argNames){
-		this.group.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
-	},
-
-	methodc: function(ctx, name, args, argNames){
-		this.groupc.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
-	},
-
-	buildMethodLabelArray: function(ctx, name, args, argNames){
-		if (ctx.name)
-			name = ctx.name + "." + name;
-		return this.buildFnLabelArray(name, args, argNames);
-	},
-
-	buildFnLabelArray: function(name, args, argNames){
-		var label = [ name + "(" ], argName;
-		if (argNames.length){
-
-			// build argName: argValue, ...
-			for (var i = 0; i < argNames.length; i++){
-				argName = argNames[i];
-				if (argName)
-					label.push(argName+":");
-				label.push(args[i]);
-				if (i < argNames.length - 1){
-					label.push(",");
-				}
-			}
-
-			// add additional anonymous arguments
-			if (i < args.length){
-				label.push(",");
-				for (i; i < args.length; i++){
-					label.push(args[i]);
-					if (i < args.length - 1)
-						label.push(",");
-				}
-			}
-
-		// the function defines no args, these are all anonymous args
-		} else if (args.length){
-			for (var j = 0; j < args.length; j++){
-				label.push(args[j]);
-				if (j < args.length - 1)
-					label.push(",");
-			}
-		}
-		label.push(")");
-		return label;
-	},
-
-	ret: function(retValue){
-		if (is.fn(retValue)){
-			retValue = retValue.toString().split("{")[0];
-		}
-		// this.contain can be undefined/"auto", true, or false
-		if (!is.def(this.contain) || this.contain === "auto"){
-			// log return value after the group
-			if (is.def(retValue)){
-				console.groupEnd();
-				this.log("  return", retValue);
-			// or not at all
-			} else {
-				console.groupEnd();
-			}
-		} else if (this.contain === true){
-			this.log("return", retValue);
-			console.groupEnd();
-		} else if (this.contain === false){
-			this.groupEnd();
-			this.log("  return", retValue); // this.log is sometimes a function, and sometimes a module?  maybe we need to call logger instances "logger", so its logger.log(), this.logger.log(), and this.log() inside the logger.
-		}
-
-	},
-
-
 	wrapMethod: function(name, fn){
 		var _log = this,
 			argNames = getParamNames(fn),
@@ -203,13 +147,14 @@ var Logger = Module.extend({
 
 	// { name, method, any other config... }
 	__method: function(opts){
-		// store this on .methods[name] ??  no - the logger is shared between all instances of a class, by default, and we want to be able to customize each one
-		return new this.Method(
-			this.methods.default, 
-			this.methods[opts && opts.name] || {}, 
-			opts || {}, 
-			{ log: this }
-		).wrapper();
+		// store this on .methods[name] ??  no - the logger is shared between all instances of a class, by default, and we want to be able to customize each 
+		if (opts && opts.name && is.def(this.methods[opts.name])){
+			if (this.methods[opts.name] === false)
+				return opts.method; // no wrap for you
+			return new this.methods[opts.name](opts, {log: this}).wrapper();
+		}
+		else
+			return new this.Method(opts, {log: this}).wrapper()
 	}
 });
 

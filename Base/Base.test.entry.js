@@ -1,3 +1,5 @@
+console.groupCollapsed("Base.test.entry.js");
+
 require("../jasmine");
 
 var Base = require("./Base");
@@ -208,7 +210,49 @@ describe("Logged", function(){
 
 	});
 
-	it("should be configurable in different ways", function(){
+	it("should wrap methods", function(){
+		console.group("should wrap methods");
+
+		var L = Logged.extend({
+			name: "L",
+			protoMethod: function(){
+				console.log("console.log from within protoMethod");
+			}
+		});
+
+		var l = new L({
+			name: "l",
+			instanceMethod: function(){
+				console.log("console.log from within instanceMethod");
+				this.protoMethod();
+			}
+		})
+
+		l.instanceMethod();
+
+		console.groupEnd();
+	});
+
+	it("should immediately instantiate the .log if the Logger property has been assigned, so that it uses this incoming configuration when wrapping the methods", function(){
+		var L = Logged.extend({
+			preLogger: function(){}, // uses the Logged.prototype.log when accessing "this.log.method"
+			Logger: Logged.Logger.extend(),
+			postLogger: function(){} // should use this new one
+		});
+
+		expect(L.Logger).not.toBe(Logged.Logger);
+		expect(L.Logger.Method).not.toBe(Logged.Logger.Method);
+		expect(L.log).not.toBe(Logged.log);
+
+		var l = new L();
+
+		expect(l.preLogger.method instanceof Logged.Logger.Method).toBe(true);
+
+		expect(l.postLogger.method instanceof L.Logger.Method);
+	});
+
+// requires visual inspection
+	xit("should be configurable in different ways", function(){
 		var L = Logged.extend();
 
 		console.log(1);
@@ -227,20 +271,48 @@ describe("Logged", function(){
 		L.log.error("you should not see me");
 
 		var L2 = L.extend({
-			// Logger: L.Logger.extend({
-			// 	Test: L.Logger.Test.extend({
-			// 		one: 5,
-			// 		two: 8
-			// 	})
-			// })
-			// this works, but its inefficient.  lets try a different way...
+			Logger: L.Logger.extend({
+				Test: L.Logger.Test.extend({
+					one: 5,
+					two: 8
+				})
+			})
+			// this is actually perfectly transparent and efficient..
+			// a recursive .extend helper could be really useful, see below
 		});
 
+/*
+TL;DR:  just skip this for now
 
-// actually, this way is less efficient, currently, because the prototype.Subs are auto .extended onto the new .prototype AFTER assign, and only if !hasOwn.  Basically, in this case, the Logger and Test are auto .extended, and THEN we replace the Test module, causing the auto .extended Test to be replaced, discarded, and hopefully garbage collected.  Not a huge deal, but the above way should be perfectly efficient, because we don't auto .extend, since we assign the new one directly, and then it "hasOwn"
-		L2.Logger.both({
-			Test: L2.Logger.Test.extend({})
-		});
+L2 = L.extend({
+	Logger: {
+		Test: {
+			one: 5,
+			two: 8
+		}
+	}
+});
+
+This would execute the extends in a different order.  Above, the L.Logger.Test.extend would happen first, then L.Logger.extend, and then the L.extend.
+
+The first example, order of execution:
+1.  L.Logger.Test.extend
+2.  L.Logger.extend
+3.  L.extend
+
+The next (directly above) example:
+1.  L.extend
+2.  L.Logger.extend
+3.  L.Logger.Test.extend
+(reversed)
+
+Does that matter?  If there are hooks that use a sub class, then it might.  If the L.events.on("extended") hook creates a new Ext.Logger, will that be the new logger?
+
+It depends on when the recursive .extend happens.  You'd need a 
+
+*/
+
+
 
 		console.log(2);
 		L2.log.log(2);
@@ -312,9 +384,21 @@ this.log.msg(o)
 		var test = {};
 		var L2 = Logged.extend({
 			name: "L2",
+			Logger: Logged.Logger.extend({
+				// skip: true,
+				Method: Logged.Logger.Method.extend({
+					contain: true
+				})
+			}),
 			wrappedTwice: function(one, two){
 				test.one = true;
+				this.log.info("inside wrappedTwice");
+				one = this.anotherMethod(one);
 				return one + " asdf " + two;
+			},
+			anotherMethod: function(arg){
+				this.log.log("inside anotherMethod");
+				return arg + 1;
 			}
 		});
 
@@ -377,7 +461,7 @@ this.log.msg(o)
 	});
 
 	// has to be verified visually...
-	xit("should automatically wrap assigned functions", function(){
+	it("should automatically wrap assigned functions", function(){
 		var L2 = Logged.extend({
 				amIWrapped: function(){
 					console.log("amIWrapped?");
@@ -401,6 +485,7 @@ this.log.msg(o)
 		l.yep();
 		l.amIWrapped();
 	});
+
 });
 
 
@@ -495,3 +580,5 @@ describe("Module", function(){
 		expect(Mod5.Sub.SubSub.prop).toBe("Mod5SubSub.prop");
 	});
 });
+
+console.groupEnd();
