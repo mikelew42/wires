@@ -50,14 +50,44 @@ var initSubClassElevationFilter = function(){
 	this.filter("assign", function(value, name){
 		// this should only run for the prototype
 		// this === prototype
-		if ((is.fn(value) && value.extend) || name === "methods"){
-			if (i === "constructor")
-				return value;
+		if (name === "constructor")
+			return value;
 
+		if ((is.fn(value) && value.extend) || name === "methods"){
 			this.constructor[name] = value;
 		}
 		return value;
 	});
+};
+
+/*
+The problem here, is that if we just check the methods for .wrapper, and if its 
+*/
+var reWrapMethods = function(prototype){
+	for (var i in prototype){
+		if (is.fn(prototype[i]) && prototype[i].method){
+			// how do we determine whether to re-wrap?
+			// 1)  is there a custom method?
+			// 2)  if not, does it match the loggers default method?
+
+	// make a log.isCorrectMethodClass helper?
+/*
+Or, make a log.wrap function that does the looping/wrapping, but checks if its already wrapped properly before doing so.  That way, we can just call this.log.wrap(this); on init?
+
+Should we just wrap all methods, and put them directly on the instances
+*/
+			if (is.def(prototype.log.methods[i])){
+				if ( (is.bool(prototype.log.methods[i]) && prototype.log.methods[i]) // true or
+					  || !(prototype[i].method instanceof prototype.log.methods[i]) ){ // 
+						prototype[i] = prototype.log.method({
+							name: i,
+							method: prototype[i].method.method;
+						});
+				}
+			}
+		}
+
+	}
 };
 
 var Logged = Module.extend({
@@ -66,20 +96,21 @@ var Logged = Module.extend({
 	assign: eventedAssign,
 	// .config gets plucked and put onto the Class directly...
 	config: function(){
+		console.group(this.name + ".config");
 		// this === Logged
 		this.events.on("extended", function(Ext){
-			// wrap this with init_log, to make it easy to extend?
-			// but, we want this to run on extend, not for each instance
-			// console.log("Logged.events.extended -> creating Logged.log");
+			console.groupCollapsed("Logged.events on extended");
+			
 			if (!Ext.prototype.hasOwnProperty("log"))
 				Ext.log = Ext.prototype.log = new Ext.prototype.Logger();
-			// if you modify Logger class in an unintelligent way (something that won't be inherited automatically), then you need to recreate this log instance
-				// modifying the prototype should be legit...
-				// log.Method, for example
-				// log.Method.methods should be shared, too...
+
+
+
+			console.groupEnd();
 		});
 
 		this.events.on("setupPrototype", function(Ext, Base, args){
+			console.groupCollapsed("Logged.events on setupPrototype");
 			// runs right before incoming args are assigned to prototype
 			
 			// enable events
@@ -89,13 +120,17 @@ var Logged = Module.extend({
 			initMethodAutoWrapper.call(Ext.prototype);
 			initLoggerIntercept.call(Ext.prototype);
 			initSubClassElevationFilter.call(Ext.prototype);
+
+			console.groupEnd();
 		});
+
+		console.groupEnd();
 	},
 	Logger: Logger.extend({
 		name: "Loggedr",
-		Method: Logger.Method.extend({
-
-		})
+		methods: {
+			create: false
+		}
 	})
 });
 

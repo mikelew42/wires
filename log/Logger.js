@@ -4,6 +4,7 @@ var noop = function(){};
 var getParamNames = require("./getParamNames");
 var Method = require("./Method");
 var Module = require("../Base/Module");
+var events = require("events");
 
 var methods = [
 	{
@@ -42,16 +43,77 @@ var Test = Module.extend({
 	}
 });
 
-var extendMethods = function(methods){
+/*
+What if methods[name] === false?
+	and extender = false ==> assign
+	and extender = {} ==> create new logger.Method
+	and extender instanceof Method ==> assign it
+
+What if methods[name] === Method
+	and extender = false ==> assign
+	and extender = {} ==> extend the existing
+
+Looping through extenders
+If extender is false ==> just assign it
+If 
+*/
+var extendMethods = function(methods, extenders, logger){
 	var newMethods = {};
 
-	for (var i in methods){
-		newMethods[i] = methods[i].extend({
-			name: methods[i].name // resets the name to avoid ClassExtExtExtExt...
-		});
+	// if we have extenders, we need to rewrap those methods... 
+	// how do we get access to the Logged.prototype, in order to do that?
+		// i'll try looping through the new logged prototype
+	if (extenders){
+		// start by looping through them
+		for (var i in extenders){
+			if (is.bool(extenders[i]) || (extenders[i] instanceof Method) ){
+				newMethods[i] = extenders[i];
+			// extenders[i] should be an object at this point
+			} else if (is.obj(extenders[i])) {
+				if (methods[i] instanceof Method){
+					newMethods[i] = methods[i].extend({
+						name: methods[i].name
+					}, extenders[i]);
+				} else {
+					newMethods[i] = logger.Method.extend({
+						name: logger.Method.name
+					}, extenders[i]);
+				}
+			}
+		}
+	}
+
+	// but, we still need to extend the remaining methods
+	for (var j in methods){
+		if (is.def(newMethods[j]))
+			continue;
+		if (is.bool(methods[j])) {
+			newMethods[j] = methods[j];
+		} else if (methods[j] instanceof Method){
+			newMethods[j] = methods[j].extend({
+				name: methods[j].name
+			});
+		}
 	}
 
 	return newMethods;
+};
+
+var initAssignFilters = function(){
+	// this is for the prototype only, when we .extend Logger, and pass a plain object to methods: {}
+	// but if we don't, it'll still get extended... we don't want to do duplicate work here.
+		// the has own check will be ok for now
+
+	// BUT!  when we modify .methods, we need to rewrap those methods...
+
+
+	this.filter("assign", function(value, name){
+		var newMethods = {};
+		if (name === "methods"){
+			return extendMethods(this.methods, value, this);
+		}
+		return value;
+	});
 };
 
 var Logger = Module.extend({
@@ -63,12 +125,27 @@ var Logger = Module.extend({
 		console.groupCollapsed("Logger.config");
 		// this === Class
 		this.events.on("extended", function(Ext, Base){
+			console.groupCollapsed("Logger.events on extended");
 			// Ext === the new class
 			Ext.on = Ext.prototype.on.bind(Ext.prototype);
 			Ext.off = Ext.prototype.off.bind(Ext.prototype);
 
 
-			Ext.methods = Ext.prototype.methods = extendMethods(Ext.prototype.methods);
+			if (!Ext.prototype.hasOwnProperty("methods"))
+				Ext.prototype.methods = extendMethods(Ext.prototype.methods);
+
+			Ext.methods = Ext.prototype.methods;
+			console.groupEnd();
+		});
+
+		this.events.on("setupPrototype", function(Ext, Base, args){
+			console.groupCollapsed("Logger.events on setupPrototype");
+			// enable events
+			events.call(Ext.prototype);
+			Ext.prototype._events = {}; // clobber it!
+
+			initAssignFilters.call(Ext.prototype);
+			console.groupEnd();
 		});
 
 		console.groupEnd();

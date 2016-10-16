@@ -212,6 +212,10 @@ describe("Logged", function(){
 
 	it("should wrap methods", function(){
 		console.group("should wrap methods");
+		expect(Logged.prototype.create.wrapped).toBeUndefined();
+
+		expect(Logged.Logger.methods.create).toBe(false);
+		expect(Logged.Logger.prototype.create.wrapped).toBeUndefined();
 
 		var L = Logged.extend({
 			name: "L",
@@ -219,6 +223,8 @@ describe("Logged", function(){
 				console.log("console.log from within protoMethod");
 			}
 		});
+
+		expect(L.log.methods.create).toBe(false);
 
 		var l = new L({
 			name: "l",

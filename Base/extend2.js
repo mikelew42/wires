@@ -19,10 +19,14 @@ var extend = module.exports = {
 	},
 	subbable: function(o){
 		var Ext = extend.createEventedConstructor(extend.name(o, this));
-		console.groupCollapsed(Ext.name + " extends " + this.name);
-		console.trace();
+		console.groupCollapsed(Ext.name + " extends " + this.name + " (extend2.subbable)");
+		// console.trace();
 		extend.setupSubbableConstructor(Ext, this, o);
+
+		console.log("createPrototype, and relink a few props");
 		extend.createPrototype(Ext, this);
+
+
 		extend.setupSubbablePrototype(Ext, this, arguments);
 		Ext.events.emit("extended", Ext, this);
 		console.groupEnd();
@@ -44,7 +48,18 @@ var extend = module.exports = {
 		Ext.base = Base;
 	},
 	setupSubbableConstructor: function(Ext, Base, o){
+		console.group("extend2.setupSubbableConstructor");
+
+		console.log(".handleClassProps(), copies some Base[props] to Ext[props]");
 		extend.handleClassProps(Ext, Base);
+
+		console.log("Ext.events = new EventEmitter();");
+		Ext.events = new EventEmitter();
+		console.log("Ext.base = Base");
+		Ext.base = Base;
+		
+
+		console.group("config: pluck and call")
 
 		// must be after the above .handleClassSubs call
 		if (o && o.config){
@@ -52,9 +67,10 @@ var extend = module.exports = {
 			delete o.config;
 		} // must also be before the .events EE is created below
 
-		Ext.events = new EventEmitter();
-		Ext.base = Base;
 		Ext.config && Ext.config();
+		console.groupEnd();
+
+		console.groupEnd();
 	},
 	createPrototype: function(Ext, Base){
 		var protoID = Ext.prototype.id;
@@ -66,11 +82,19 @@ var extend = module.exports = {
 	setupPrototype: function(Ext, Base, args){
 		Ext.prototype.assign.apply(Ext.prototype, args);
 	},
-	setupSubbablePrototype: function(Ext, Base, args){ 
+	setupSubbablePrototype: function(Ext, Base, args){
+		console.group(".setupSubbablePrototype");
+
+		console.log("Ext.events.emit('setupPrototype')");
 		Ext.events.emit("setupPrototype", Ext, Base, args);
+
+		console.log(".recursiveExtend()");
 		extend.recursiveExtend(Ext, args);
 		// Ext.prototype.assign.apply(Ext.prototype, args);
+		
+		console.log(".elevateProtoClasses");
 		extend.elevateProtoClasses(Ext);
+		console.groupEnd();
 	},
 	// this is basically just the eventedAssign function
 	recursiveExtend: function(Ext, args){
