@@ -212,10 +212,18 @@ describe("Logged", function(){
 
 	it("should wrap methods", function(){
 		console.group("should wrap methods");
-		expect(Logged.prototype.create.wrapped).toBeUndefined();
+		// expect(Logged.prototype.create.wrapped).toBeUndefined();
+		// expect(Logged.Logger.methods.create).toBe(false);
+		
+		expect(Logged.Logger.methods.create).toBeDefined();
+		// console.dir(Logged.Logger.methods.create.prototype.methodLabel.toString());
+		
+		// expect(Logged.log.methods).toBe(Logged.Logger.methods);
+		expect(Object.keys(Logged.log.methods)).toEqual(Object.keys(Logged.Logger.methods));
+		// expect(Logged.Logger.methods.create.base).toBe(Logged.Logger.Method);
+		
 
-		expect(Logged.Logger.methods.create).toBe(false);
-		expect(Logged.Logger.prototype.create.wrapped).toBeUndefined();
+		// expect(Logged.Logger.prototype.create.wrapped).toBeUndefined();
 
 		var L = Logged.extend({
 			name: "L",
@@ -224,7 +232,7 @@ describe("Logged", function(){
 			}
 		});
 
-		expect(L.log.methods.create).toBe(false);
+		// console.log(L.log.methods.create.prototype.methodLabel.toString());
 
 		var l = new L({
 			name: "l",
@@ -236,7 +244,50 @@ describe("Logged", function(){
 
 		l.instanceMethod();
 
+
+		var L2 = Logged.extend({
+			name: "L2",
+			Logger: {
+				methods: {
+					create: {
+						testInsert: function(){
+							return 6;
+						}
+					}
+				}
+			}
+		});
+
+		var l2 = new L2({
+			name: "l2"
+		});
+
 		console.groupEnd();
+	});
+
+	it("should use custom .methods Method class", function(){
+		var L = Logged.extend({
+			name: "L",
+			Logger: {
+				testProp: 123
+			},
+			wrapMe: function(){
+				console.log("so wrapped");
+			}
+		});
+
+		expect(L.Logger).not.toBe(Logged.Logger);
+		expect(L.log instanceof Logged.Logger).toBe(true);
+		expect(L.log instanceof L.Logger).toBe(true);
+		expect(L.log.testProp).toBe(123);
+
+		var l = new L({
+			name: "l"
+		});
+
+		expect(l.log).toBe(L.log);
+
+		l.wrapMe();
 	});
 
 	it("should immediately instantiate the .log if the Logger property has been assigned, so that it uses this incoming configuration when wrapping the methods", function(){
@@ -273,7 +324,7 @@ describe("Logged", function(){
 			two: 5
 		});
 
-		L.log.off();
+		L.log.stop();
 		L.log.error("you should not see me");
 
 		var L2 = L.extend({
@@ -328,7 +379,7 @@ It depends on when the recursive .extend happens.  You'd need a
 
 		L.log.error("L2 is on, but L should still be off!!");
 
-		L.log.on();
+		L.log.start();
 		
 		console.log(3);
 		L.log.log(3);
@@ -337,7 +388,7 @@ It depends on when the recursive .extend happens.  You'd need a
 		
 		console.log(123);
 		L3.log.log(123);
-		L3.Logger.prototype.off();
+		L3.Logger.prototype.stop();
 
 		L3.log.error("You should not see me!!");
 
@@ -345,7 +396,7 @@ It depends on when the recursive .extend happens.  You'd need a
 		L4.log.error("this should be off");
 		L3.log.error("this should be off");
 
-		L3.log.on();
+		L3.log.start();
 		console.log(11);
 		L3.log.log(11);
 		L4.log.error("this should be off");
@@ -451,7 +502,7 @@ this.log.msg(o)
 		l2.instanceMethod("one", true, 3, {four: 4});
 
 		// realtime cases vs pre-extend cases
-		// if you turn Logged.log.off() inside the Logged file, all loggers will be off, unless you turn them .on()
+		// if you turn Logged.log.stop() inside the Logged file, all loggers will be off, unless you turn them .start()
 
 		// however, for a specific .log instance, you can turn it on/off in realtime.  It all depends if there's a log per Class or per instance
 

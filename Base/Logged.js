@@ -15,7 +15,6 @@ var _log, log = _log = Logger({
 });
 
 var create = function(o){
-	console.groupCollapsed( ((o && o.name) || this.name) + " = new " + this.constructor.name + "(", arguments, ")");
 	track.call(this);
 	initMethodAutoWrapper.call(this);
 	this.assign.apply(this, arguments);
@@ -27,7 +26,7 @@ var initMethodAutoWrapper = function(){
 	this.filter("assign", function(value, name){
 		var log = this.log || _log;
 		if (is.fn(value) && !value.wrapped && !value.extend){
-			return log.__method({
+			return log.method({
 				name: name,
 				method: value
 			});
@@ -61,28 +60,38 @@ var initSubClassElevationFilter = function(){
 };
 
 /*
-The problem here, is that if we just check the methods for .wrapper, and if its 
+TODO harmonize this with the autoWrap feature?  Should we try to loop through all methods, and wrap them?
 */
 var reWrapMethods = function(prototype){
 	for (var i in prototype){
+		// for each wrapped method on this prototype (and anywhere in its prototype chain)...
 		if (is.fn(prototype[i]) && prototype[i].method){
-			// how do we determine whether to re-wrap?
-			// 1)  is there a custom method?
-			// 2)  if not, does it match the loggers default method?
 
-	// make a log.isCorrectMethodClass helper?
-/*
-Or, make a log.wrap function that does the looping/wrapping, but checks if its already wrapped properly before doing so.  That way, we can just call this.log.wrap(this); on init?
-
-Should we just wrap all methods, and put them directly on the instances
-*/
 			if (is.def(prototype.log.methods[i])){
-				if ( (is.bool(prototype.log.methods[i]) && prototype.log.methods[i]) // true or
-					  || !(prototype[i].method instanceof prototype.log.methods[i]) ){ // 
+				// bool + false
+				if ( is.bool(prototype.log.methods[i]) && !prototype.log.methods[i] ){
+					// unwrap it
+					prototype[i] = prototype[i].method.method;
+
+				// bool + true
+				} else if (is.bool(prototype.log.methods[i]) && prototype.log.methods[i] ){
+					// if its the correct instance, skip it
+					if (prototype[i].method instanceof prototype.log.Method)
+						continue;
+					// if the default logger has been updated, rewrap it
+					else
 						prototype[i] = prototype.log.method({
 							name: i,
-							method: prototype[i].method.method;
+							method: prototype[i].method.method
 						});
+
+				// assume methods[name] is a Method class, and if its the wrong one, rewrap
+				} else if (!(prototype[i].method instanceof prototype.log.methods[i]) ){ // incorrect Method class
+					// rewrap
+					prototype[i] = prototype.log.method({
+						name: i,
+						method: prototype[i].method.method
+					});
 				}
 			}
 		}
@@ -104,7 +113,8 @@ var Logged = Module.extend({
 			if (!Ext.prototype.hasOwnProperty("log"))
 				Ext.log = Ext.prototype.log = new Ext.prototype.Logger();
 
-
+			// after all changes to .methods{}, we need to apply these effects
+			reWrapMethods(Ext.prototype);
 
 			console.groupEnd();
 		});
@@ -117,8 +127,13 @@ var Logged = Module.extend({
 			events.call(Ext.prototype);
 			Ext.prototype._events = {}; // clobber it!
 
+			// assign fn --> wrap it
 			initMethodAutoWrapper.call(Ext.prototype);
+
+			// assign "Logger" --> new .log
 			initLoggerIntercept.call(Ext.prototype);
+
+			// the elevator:  if Sub classes or .methods{} are assigned, elevate to Class
 			initSubClassElevationFilter.call(Ext.prototype);
 
 			console.groupEnd();
@@ -129,7 +144,21 @@ var Logged = Module.extend({
 	Logger: Logger.extend({
 		name: "Loggedr",
 		methods: {
-			create: false
+			create: {
+				methodLabel: function(ctx, args){
+					this.name = this.testInsert() + "";
+					if (args[0].name){
+						this.name += "var " + args[0].name + " = "; 
+					}
+					this.name += "new " + ctx.name;
+
+					this.argNames = [];
+					return this.fnLabel(ctx, args);
+				},
+				testInsert: function(){
+					return 5;
+				}
+			}
 		}
 	})
 });
@@ -176,9 +205,9 @@ var Logged = Module.extend({
 // 	return Ext;
 // });
 
-// Logged.log.off();
+// Logged.log.stop();
 // module.exports = Logged.extend();
-// Logged.log.on();
+// Logged.log.start();
 
 module.exports = Logged;
 

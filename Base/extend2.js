@@ -2,6 +2,7 @@ var createConstructor = require("./createConstructor");
 var createEventedConstructor = require("./createEventedConstructor");
 var EventEmitter = require("events");
 var is = require("../is");
+var track = require("./track");
 var extend = module.exports = {
 	main: function(o){
 		var Ext = extend.createConstructor(extend.name(o, this));
@@ -73,9 +74,8 @@ var extend = module.exports = {
 		console.groupEnd();
 	},
 	createPrototype: function(Ext, Base){
-		var protoID = Ext.prototype.id;
 		Ext.prototype = Object.create(Base.prototype);
-		Ext.prototype.id = protoID;
+		track.call(Ext.prototype);
 		Ext.prototype.constructor = Ext;
 		Ext.prototype.type = Ext.name;
 	},
@@ -98,7 +98,7 @@ var extend = module.exports = {
 	},
 	// this is basically just the eventedAssign function
 	recursiveExtend: function(Ext, args){
-		var arg, prop;
+		var arg, propValue;
 		// allow multiple objects
 		for (var i = 0; i < args.length; i++){
 			arg = args[i];
@@ -109,7 +109,7 @@ var extend = module.exports = {
 				if (is.fn(Ext.prototype[propName]) && Ext.prototype[propName].extend && is.obj(propValue) ){
 					console.log("recursiveExtending");
 					Ext.prototype[propName] = 
-						Ext.prototype.applyFilter("recursiveExtend", Ext.prototype[propName].extend(propValue), propName);
+						Ext.prototype.applyFilter("assign", Ext.prototype.applyFilter("recursiveExtend", Ext.prototype[propName].extend(propValue), propName), propName);
 				} else {
 					// assign it to this
 					Ext.prototype[propName] = Ext.prototype.applyFilter("assign", propValue, propName);

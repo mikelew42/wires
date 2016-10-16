@@ -40,7 +40,7 @@ var MyModule = Module.extend({
 
 // link up the Class.prototype.logger with the file's logger, so you can turn them both on/off in one step...
 logger = MyModule.prototype.logger; // ?
-logger.on().off().config();
+logger.start().stop().config();
 
 // well, if ALL logged modules will have a reference somewhere on their prototype chain to a logger, then we could just go back to this.log, and not even have to bind to it...
 
@@ -55,7 +55,7 @@ var MyModule = Logged.extend({
 });
 
 log = MyModule.prototype.log;  // is that safe?  MyModule.prototype.log is actually on the Logged.prototype, and modifying it modifies the settings for all Logged instances...
-log.on().off().config();
+log.start().stop().config();
 
 Logged.Logger; // reference to the Logger that created Logged.prototype.log
 // only one .log is needed on the prototype to be functional, and all extensions can utilize it.. but then you'd have to be sure to customize it
