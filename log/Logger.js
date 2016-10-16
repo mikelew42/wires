@@ -5,6 +5,7 @@ var getParamNames = require("./getParamNames");
 var Method = require("./Method");
 var Module = require("../Base/Module");
 var events = require("events");
+var eventedAssign = require("../Base/eventedAssign");
 
 var methods = [
 	{
@@ -70,7 +71,7 @@ var extendMethods = function(methods, extenders, logger){
 				newMethods[i] = extenders[i];
 			// extenders[i] should be an object at this point
 			} else if (is.obj(extenders[i])) {
-				if (methods[i] instanceof Method){
+				if (methods[i] && methods[i].isExtensionOf(Method)){
 					newMethods[i] = methods[i].extend({
 						name: methods[i].name
 					}, extenders[i]);
@@ -89,7 +90,7 @@ var extendMethods = function(methods, extenders, logger){
 			continue;
 		if (is.bool(methods[j])) {
 			newMethods[j] = methods[j];
-		} else if (methods[j] instanceof Method){
+		} else if (methods[j].isExtensionOf(Method)){
 			newMethods[j] = methods[j].extend({
 				name: methods[j].name
 			});
@@ -110,6 +111,7 @@ var initAssignFilters = function(){
 	this.filter("assign", function(value, name){
 		var newMethods = {};
 		if (name === "methods"){
+			console.warn("Logger.prototype.assign methods");
 			return extendMethods(this.methods, value, this);
 		}
 		return value;
@@ -121,14 +123,15 @@ var Logger = Module.extend({
 	Method: Method,
 	Test: Test,
 	methods: {},
+	assign: eventedAssign,
 	config: function(){
 		console.groupCollapsed("Logger.config");
 		// this === Class
 		this.events.on("extended", function(Ext, Base){
 			console.groupCollapsed("Logger.events on extended");
 			// Ext === the new class
-			Ext.on = Ext.prototype.on.bind(Ext.prototype);
-			Ext.off = Ext.prototype.off.bind(Ext.prototype);
+			Ext.start = Ext.prototype.start.bind(Ext.prototype);
+			Ext.stop = Ext.prototype.stop.bind(Ext.prototype);
 
 
 			if (!Ext.prototype.hasOwnProperty("methods"))
@@ -153,7 +156,7 @@ var Logger = Module.extend({
 	init: function(){
 		this.methods = extendMethods(this.methods);
 		if (this.skip)
-			this.off();
+			this.stop();
 	},
 
 	copy: function(){
@@ -179,7 +182,7 @@ var Logger = Module.extend({
 	},
 	xend: noop,
 
-	off: function(){
+	stop: function(){
 		var method;
 		for (var i in methods){
 			method = methods[i];
@@ -188,7 +191,7 @@ var Logger = Module.extend({
 		this.skip = true;
 	},
 
-	on: function(){
+	start: function(){
 		var method;
 		for (var i in methods){
 			method = methods[i];
@@ -223,7 +226,7 @@ var Logger = Module.extend({
 	},
 
 	// { name, method, any other config... }
-	__method: function(opts){
+	method: function(opts){
 		// store this on .methods[name] ??  no - the logger is shared between all instances of a class, by default, and we want to be able to customize each 
 		if (opts && opts.name && is.def(this.methods[opts.name])){
 			if (this.methods[opts.name] === false)
