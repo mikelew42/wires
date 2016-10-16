@@ -3,6 +3,8 @@ var is = require("../is");
 var noop = function(){};
 var getParamNames = require("./getParamNames");
 var Method = require("./Method");
+var Module = require("../Base/Module");
+var events = require("events");
 
 var methods = [
 	{
@@ -32,28 +34,126 @@ var methods = [
 	}
 ];
 
-
-
-
-
-var Logger = Base.extend({
-	name: "Logger",
-	_shouldLog: true,
-	Method: Method,
+var Test = Module.extend({
+	name: "Test",
+	one: 1,
+	two: 2,
 	init: function(){
-		this.initMethods();
-	},
-	initMethods: function(){
-		var method, consoleName; 
-		for (var i in methods){
-			method = methods[i];
-			consoleName = method.consoleName || method.name;
-			this[method.name] = console[consoleName].bind(console);
-			this["$" + method.name] = this[method.name];
-			this["x" + method.name] = noop;
-		}
+		this.log.log(this.one + this.two);
+	}
+});
 
-		this.methods = {}; // config for specific methods
+/*
+What if methods[name] === false?
+	and extender = false ==> assign
+	and extender = {} ==> create new logger.Method
+	and extender instanceof Method ==> assign it
+
+What if methods[name] === Method
+	and extender = false ==> assign
+	and extender = {} ==> extend the existing
+
+Looping through extenders
+If extender is false ==> just assign it
+If 
+*/
+var extendMethods = function(methods, extenders, logger){
+	var newMethods = {};
+
+	// if we have extenders, we need to rewrap those methods... 
+	// how do we get access to the Logged.prototype, in order to do that?
+		// i'll try looping through the new logged prototype
+	if (extenders){
+		// start by looping through them
+		for (var i in extenders){
+			if (is.bool(extenders[i]) || (extenders[i] instanceof Method) ){
+				newMethods[i] = extenders[i];
+			// extenders[i] should be an object at this point
+			} else if (is.obj(extenders[i])) {
+				if (methods[i] instanceof Method){
+					newMethods[i] = methods[i].extend({
+						name: methods[i].name
+					}, extenders[i]);
+				} else {
+					newMethods[i] = logger.Method.extend({
+						name: logger.Method.name
+					}, extenders[i]);
+				}
+			}
+		}
+	}
+
+	// but, we still need to extend the remaining methods
+	for (var j in methods){
+		if (is.def(newMethods[j]))
+			continue;
+		if (is.bool(methods[j])) {
+			newMethods[j] = methods[j];
+		} else if (methods[j] instanceof Method){
+			newMethods[j] = methods[j].extend({
+				name: methods[j].name
+			});
+		}
+	}
+
+	return newMethods;
+};
+
+var initAssignFilters = function(){
+	// this is for the prototype only, when we .extend Logger, and pass a plain object to methods: {}
+	// but if we don't, it'll still get extended... we don't want to do duplicate work here.
+		// the has own check will be ok for now
+
+	// BUT!  when we modify .methods, we need to rewrap those methods...
+
+
+	this.filter("assign", function(value, name){
+		var newMethods = {};
+		if (name === "methods"){
+			return extendMethods(this.methods, value, this);
+		}
+		return value;
+	});
+};
+
+var Logger = Module.extend({
+	name: "Logger",
+	Method: Method,
+	Test: Test,
+	methods: {},
+	config: function(){
+		console.groupCollapsed("Logger.config");
+		// this === Class
+		this.events.on("extended", function(Ext, Base){
+			console.groupCollapsed("Logger.events on extended");
+			// Ext === the new class
+			Ext.on = Ext.prototype.on.bind(Ext.prototype);
+			Ext.off = Ext.prototype.off.bind(Ext.prototype);
+
+
+			if (!Ext.prototype.hasOwnProperty("methods"))
+				Ext.prototype.methods = extendMethods(Ext.prototype.methods);
+
+			Ext.methods = Ext.prototype.methods;
+			console.groupEnd();
+		});
+
+		this.events.on("setupPrototype", function(Ext, Base, args){
+			console.groupCollapsed("Logger.events on setupPrototype");
+			// enable events
+			events.call(Ext.prototype);
+			Ext.prototype._events = {}; // clobber it!
+
+			initAssignFilters.call(Ext.prototype);
+			console.groupEnd();
+		});
+
+		console.groupEnd();
+	},
+	init: function(){
+		this.methods = extendMethods(this.methods);
+		if (this.skip)
+			this.off();
 	},
 
 	copy: function(){
@@ -69,6 +169,10 @@ var Logger = Base.extend({
 		return new this.constructor(ownProps); // "new" keyword is required here!!
 	},
 
+	test: function(o){
+		new this.Test(o, {log: this});
+	},
+
 	end: function(fn){
 		fn();
 		console.groupEnd();
@@ -81,7 +185,7 @@ var Logger = Base.extend({
 			method = methods[i];
 			this[method.name] = noop;
 		}
-		this._shouldLog = false;
+		this.skip = true;
 	},
 
 	on: function(){
@@ -90,91 +194,8 @@ var Logger = Base.extend({
 			method = methods[i];
 			this[method.name] = this["$" + method.name];
 		}
-		this._shouldLog = true;
+		this.skip = false;
 	},
-
-	shouldLog: function(obj){
-		if (is.def(obj.log))
-			return obj.log; // true or false
-		return this._shouldLog;
-	},
-
-
-	method: function(ctx, name, args, argNames){
-		this.group.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
-	},
-
-	methodc: function(ctx, name, args, argNames){
-		this.groupc.apply(0, this.buildMethodLabelArray(ctx, name, args, argNames));
-	},
-
-	buildMethodLabelArray: function(ctx, name, args, argNames){
-		if (ctx.name)
-			name = ctx.name + "." + name;
-		return this.buildFnLabelArray(name, args, argNames);
-	},
-
-	buildFnLabelArray: function(name, args, argNames){
-		var label = [ name + "(" ], argName;
-		if (argNames.length){
-
-			// build argName: argValue, ...
-			for (var i = 0; i < argNames.length; i++){
-				argName = argNames[i];
-				if (argName)
-					label.push(argName+":");
-				label.push(args[i]);
-				if (i < argNames.length - 1){
-					label.push(",");
-				}
-			}
-
-			// add additional anonymous arguments
-			if (i < args.length){
-				label.push(",");
-				for (i; i < args.length; i++){
-					label.push(args[i]);
-					if (i < args.length - 1)
-						label.push(",");
-				}
-			}
-
-		// the function defines no args, these are all anonymous args
-		} else if (args.length){
-			for (var j = 0; j < args.length; j++){
-				label.push(args[j]);
-				if (j < args.length - 1)
-					label.push(",");
-			}
-		}
-		label.push(")");
-		return label;
-	},
-
-	ret: function(retValue){
-		if (is.fn(retValue)){
-			retValue = retValue.toString().split("{")[0];
-		}
-		// this.contain can be undefined/"auto", true, or false
-		if (!is.def(this.contain) || this.contain === "auto"){
-			// log return value after the group
-			if (is.def(retValue)){
-				console.groupEnd();
-				this.log("  return", retValue);
-			// or not at all
-			} else {
-				console.groupEnd();
-			}
-		} else if (this.contain === true){
-			this.log("return", retValue);
-			console.groupEnd();
-		} else if (this.contain === false){
-			this.groupEnd();
-			this.log("  return", retValue); // this.log is sometimes a function, and sometimes a module?  maybe we need to call logger instances "logger", so its logger.log(), this.logger.log(), and this.log() inside the logger.
-		}
-
-	},
-
 
 	wrapMethod: function(name, fn){
 		var _log = this,
@@ -182,7 +203,7 @@ var Logger = Base.extend({
 			wrapped = function(){
 				var ret,
 					log = this.log || _log;
-				if (!log.shouldLog(this))
+				if (log.skip)
 					return fn.apply(this, arguments);
 				if (log.expand)
 					log.method(this, name, arguments, argNames);
@@ -203,19 +224,42 @@ var Logger = Base.extend({
 
 	// { name, method, any other config... }
 	__method: function(opts){
-		// store this on .methods[name] ??  no - the logger is shared between all instances of a class, by default, and we want to be able to customize each one
-		return new this.Method(
-			this.methods.default, 
-			this.methods[opts && opts.name] || {}, 
-			opts || {}, 
-			{ log: this }
-		).wrapper();
+		// store this on .methods[name] ??  no - the logger is shared between all instances of a class, by default, and we want to be able to customize each 
+		if (opts && opts.name && is.def(this.methods[opts.name])){
+			if (this.methods[opts.name] === false)
+				return opts.method; // no wrap for you
+			return new this.methods[opts.name](opts, {log: this}).wrapper();
+		}
+		else
+			return new this.Method(opts, {log: this}).wrapper()
 	}
-}).assign({
-	Method: Method
 });
 
+var initMethods = function(){
+	var method, consoleName; 
+	for (var i in methods){
+		method = methods[i];
+		consoleName = method.consoleName || method.name;
+		this[method.name] = console[consoleName].bind(console);
+		this["$" + method.name] = this[method.name];
+		
+// !!! This should be suppress.
+		this["x" + method.name] = noop;
+	}
+
+	//  this.methods = {}; // config for specific methods
+};
+
+initMethods.call(Logger.prototype);
+
 /*
+
+Logger.prototype.log, .debug, .warn, .error, etc, will be bound to the console, and they don't need to be overridden on the .log instances.
+
+The .log.$methods shouldn't ever be overwritten...
+
+
+
 
 Should the Logger.Method look at this.log.methods[this.name] in order to obey configuration in real time?
 

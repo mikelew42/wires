@@ -1,5 +1,6 @@
 var prepArgsForConstructor = require("./prepArgsForConstructor");
 var assign = require("./assign");
+var track = require("./track");
 
 var events = require("events");
 
@@ -21,6 +22,8 @@ var createConstructor = function(name){
 	constructor.prototype = Object.create(events.prototype);
 	constructor.prototype.assign = assign;
 	constructor.prototype.constructor = constructor;
+	track.call(constructor);
+	track.call(constructor.prototype);
 	return constructor;
 }
 
