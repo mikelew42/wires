@@ -75,7 +75,7 @@ var extend = module.exports = {
 	},
 	createPrototype: function(Ext, Base){
 		Ext.prototype = Object.create(Base.prototype);
-		track.call(Ext.prototype);
+		track(Ext.prototype);
 		Ext.prototype.constructor = Ext;
 		Ext.prototype.type = Ext.name;
 	},

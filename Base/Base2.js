@@ -1,13 +1,10 @@
 var createConstructor = require("./createConstructor");
 var extend = require("./extend");
-var create = require("./create");
-var track = require("./track");
+var create = require("./create")
 
 
 // Base constructor
 var Base = createConstructor("Base");
-track(Base);
-track(Base.prototype);
 
 Base.assign({
 	extend: extend,

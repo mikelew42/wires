@@ -15,7 +15,7 @@ var _log, log = _log = Logger({
 });
 
 var create = function(o){
-	track.call(this);
+	track(this);
 	initMethodAutoWrapper.call(this);
 	this.assign.apply(this, arguments);
 	this.init && this.init();

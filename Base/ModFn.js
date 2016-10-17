@@ -14,7 +14,12 @@ var ModFn = Base.extend({
 			return self.main.apply(self, args);
 		}
 	},
-	main: function(ctx){}
+	main: function(ctx){
+		var args = this.args(arguments); // just chops off the first argument, the ctx, so you can "apply" the args
+	},
+	args: function(args){
+		return [].slice.call(args, 1);
+	}
 });
 
 module.exports = ModFn;
