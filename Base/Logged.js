@@ -146,17 +146,14 @@ var Logged = Module.extend({
 		methods: {
 			create: {
 				methodLabel: function(ctx, args){
-					this.name = this.testInsert() + "";
-					if (args[0].name){
+					this.name = "";
+					if (args && args[0] && args[0].name){
 						this.name += "var " + args[0].name + " = "; 
 					}
 					this.name += "new " + ctx.name;
 
 					this.argNames = [];
 					return this.fnLabel(ctx, args);
-				},
-				testInsert: function(){
-					return 5;
 				}
 			}
 		}
