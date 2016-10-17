@@ -1,2 +1,4 @@
 // require("./TestSuite1")
-require("./ViewLogged");
+// require("./ViewLogged");
+
+require("./Perspective.js");

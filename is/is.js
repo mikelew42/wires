@@ -1,27 +1,4 @@
-var id = 0;
-var $ = require("jquery");
 var is = {
-	$panel: $("<div></div>").addClass("panel light").css({ marginTop: "50px"}),
-	view: function(value, name){
-		var $item = $("<div>").addClass("item");
-		var $name = $("<div>").addClass("name").appendTo($item);
-		if (name)
-			$name.html(name);
-		else
-			$name.html("unnamed");
-
-		var $value = $("<div>").addClass("value").appendTo($item);
-		if (value.render){
-			$value.append(value.render());
-		} else {
-			$value.addClass(typeof value).append(value.toString());
-		}
-
-		return $item;
-	},
-	nextID: function(){
-		return ++id;
-	},
 	arr: function(value){
 		return toString.call(value) === '[object Array]';
 	},
@@ -59,9 +36,4 @@ var is = {
 		return value && value.prototype && value.prototype.create;
 	}
 };
-
-$(function(){
-	is.$panel.appendTo("body");
-});
-
 module.exports = is;
