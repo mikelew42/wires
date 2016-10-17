@@ -8,6 +8,7 @@ var Filterable = require("./Filterable");
 var Logged = require("./Logged");
 var Module = require("./Module");
 var is = require("../is");
+var ModFn = require("./ModFn");
 
 describe("Base", function describeBase(){
 	it("should be a function", function aLottaWork(){
@@ -635,6 +636,32 @@ describe("Module", function(){
 
 		expect(Mod5.Sub.prop).toBe("Mod5Sub.prop");
 		expect(Mod5.Sub.SubSub.prop).toBe("Mod5SubSub.prop");
+	});
+});
+
+describe("ModFn", function(){
+	it("should export a .fn", function(){
+		var test = {}, modFn = new ModFn({
+			main: function(ctx, arg1, arg2){
+				test.ctx = ctx;
+				test.one = arg1;
+				test.two = arg2;
+			}
+		});
+
+		var obj = {
+			modFn: modFn.fn,
+			prop: 5,
+			method: function(){
+				this.modFn(this.prop, 9);
+			}
+		};
+
+		obj.method();
+
+		expect(test.ctx).toBe(obj);
+		expect(test.one).toBe(5);
+		expect(test.two).toBe(9);
 	});
 });
 
