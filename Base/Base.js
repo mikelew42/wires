@@ -2,6 +2,7 @@ var createConstructor = require("./createConstructor");
 var extend = require("./extend");
 var create = require("./create");
 var track = require("./track");
+var isExtensionOf = require("./isExtensionOf");
 
 
 // Base constructor
@@ -11,15 +12,7 @@ track(Base.prototype);
 
 Base.assign({
 	extend: extend,
-	isExtensionOf: function(Base){
-		var base = this.base;
-		while(base){
-			if (base === Base)
-				return true;
-			base = base.base;
-		}
-		return false;
-	}
+	isExtensionOf: isExtensionOf
 });
 
 Base.prototype.assign({

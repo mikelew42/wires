@@ -10,6 +10,60 @@ var Module = require("./Module");
 var is = require("../is");
 var ModFn = require("./ModFn");
 
+describe("Jasmine", function(){
+	console.group("Jasmine");
+	var now = {},
+		later;
+
+	console.log("just before it-before any hooks");
+	it("before any hooks", function(){
+		console.log("it - before any hooks");
+	});
+	console.log("just after it-before any hooks");
+
+	beforeEach(function(){
+		console.log("Jasmine.beforeEach");
+	});
+
+	console.log("just before it-after beforeEach");
+	it("after beforeEach", function(){
+		console.log("it - after beforeEach");
+	});
+	console.log("just after it-after beforeEach");
+
+	afterEach(function(){
+		console.log("Jasmine.afterEach");
+	});
+
+	it("after afterEach", function(){
+		console.log("inside it-after afterEach");
+	});
+
+	beforeAll(function(){
+		console.log("Jasmine.beforeAll");
+	});
+
+	it("after beforeAll", function(){
+		console.log("inside it-after beforeAll");
+	});
+
+	afterAll(function(){
+		console.log("Jasmine.afterAll");
+	});
+
+	afterAll(function(){
+		console.log("Jasmine.afterAll2");
+	});
+
+	describe("Sub", function(){
+
+
+	});
+
+
+	console.groupEnd();
+});
+
 describe("Base", function describeBase(){
 	it("should be a function", function aLottaWork(){
 		expect(typeof Base).toBe("function");

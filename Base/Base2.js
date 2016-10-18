@@ -1,22 +1,15 @@
 var createConstructor = require("./createConstructor");
-var extend = require("./extend");
-var create = require("./create")
+var Extend = require("./ExtendModFn");
+var create = require("./create");
+var isExtensionOf = require("./isExtensionOf");
 
 
 // Base constructor
 var Base = createConstructor("Base");
 
 Base.assign({
-	extend: extend,
-	isExtensionOf: function(Base){
-		var base = this.base;
-		while(base){
-			if (base === Base)
-				return true;
-			base = base.base;
-		}
-		return false;
-	}
+	extend: new Extend().fn,
+	isExtensionOf: isExtensionOf
 });
 
 Base.prototype.assign({

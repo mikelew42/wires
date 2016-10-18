@@ -1,9 +1,11 @@
 var is = require("../is");
 var Base = require("./Base");
 
+var currentTest;
+
 var Expectation = Base.extend({
 	init: function(){
-		this.test.addExpectation(this);
+		currentTest.addExpectation(this);
 		this.init_not();
 	},
 	init_not: function(){
@@ -62,9 +64,11 @@ var Test = Base.extend({
 	},
 	exec: function(){
 		console.group("Test " + this.name);
+		currentTest = this;
 		this.setup();
 		this.test();
 		this.report();
+		currentTest = globalTest;
 		console.groupEnd();
 	},
 	setup: function(){},
@@ -88,14 +92,21 @@ var Test = Base.extend({
 	},
 	addExpectation: function(expectation){
 		this.expectations.push(expectation);
-	},
+	}
+}).assign({
 	expect: function(a){
-		return new this.Expectation({
-			a: a,
-			test: this
+		return new Expectation({
+			a: a
 		});
-	},
-	Expectation: Expectation.extend()
+	}
 });
+
+var globalTest = new Test({
+	name: "Global",
+	init: function(){},
+	addExpectation: function(){}
+});
+
+currentTest = globalTest;
 
 module.exports = Test;
