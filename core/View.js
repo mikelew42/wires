@@ -5,7 +5,7 @@ var track = require("../Base/track");
 var View = module.exports = Logged.extend({
 	name: "View",
 	create: function(){
-		track.call(this);
+		track(this);
 		this.inst && this.inst();
 		this.assign.apply(this, arguments);
 		this.init && this.init();

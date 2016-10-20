@@ -1,21 +1,19 @@
 var createConstructor = require("./createConstructor");
+var track = require("./track");
 
 var extend = function(o){
-	var name, props, Ext, logArgs, id, protoID;
+	var name, Ext;
 
 	name = (o && o.name) || (this.name + "Ext");
 	
 	Ext = createConstructor(name);
 
-	id = Ext.id;
 	// copy this.props to Ext
 	Ext.assign(this);
-	Ext.id = id;
+		track(Ext);
 
-
-	protoID = Ext.prototype.id;
 	Ext.prototype = Object.create(this.prototype);
-	Ext.prototype.id = protoID;
+		track(Ext.prototype);
 	Ext.prototype.constructor = Ext;
 	Ext.base = this;
 	Ext.prototype.type = name;
