@@ -1,0 +1,38 @@
+body {background: #333;padding-top: 20px;}
+.block {
+	background: #fff;
+	margin-bottom: 5px;
+	border: 2px solid #757575;
+
+	.name {
+		padding: 3px 6px;
+		background: #ddd;
+	}
+}
+
+.block.finished {
+	background: #333;
+	.name {
+		background: #555;
+	}
+}
+
+.block .children {
+	padding: 5px 0px 2px 10px;
+}
+
+.node {
+	border: 2px solid red;
+}
+
+.next > .name {
+	background: #ccccff;
+}
+
+.open {
+	border-bottom: 8px solid green;
+}
+
+.closed {
+	border-bottom: 2px solid black;
+}
