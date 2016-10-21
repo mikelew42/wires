@@ -134,8 +134,10 @@ var Block = Base.extend({
 		if (!this.children.length){
 			this.finish();
 		} else {
-			if (this.reactivate)
+			if (this.reactivate){
+				this.reactivate = false;
 				this.activate(this.next);
+			}
 		}
 	},
 	finish: function(){
