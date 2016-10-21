@@ -4,15 +4,26 @@ body {background: #333;padding-top: 20px;}
 	margin-bottom: 5px;
 	border: 2px solid #757575;
 
-	.name {
+	& > .name {
 		padding: 3px 6px;
 		background: #ddd;
+	}
+
+	& > .icon {
+		display: none;
+		float: left;
+		margin-right: 5px;
+		margin-top: 7px;
+		margin-left: -10px;
+		height: 10px;
+		width: 10px;
+		background: black;
 	}
 }
 
 .block.finished {
 	background: #333;
-	.name {
+	& > .name {
 		background: #555;
 	}
 }
@@ -25,8 +36,12 @@ body {background: #333;padding-top: 20px;}
 	border: 2px solid red;
 }
 
-.next > .name {
-	background: #ccccff;
+.next > .icon {
+	display: block;
+}
+
+.active > .icon {
+	border: 2px solid blue;
 }
 
 .open {
