@@ -27,7 +27,7 @@ var next = function(){
 };
 
 $(function(){
-	debugger;
+	// debugger;
 	test("root", function(){
 		console.log("root.start");
 		console.assert(next() === 1);

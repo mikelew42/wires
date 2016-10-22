@@ -219,7 +219,8 @@ var Block = Base.extend({
 		}
 	},
 	dig: function(){
-		this.root.clearNode();
+		if (this.root.node)
+			this.root.clearNode();
 
 		this.digging = true;
 		this.$el.addClass("digging");
