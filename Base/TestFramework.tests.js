@@ -135,13 +135,5 @@ $(function(){
 
 		console.log("root.end");
 		console.assert(next() === 5);
-
-		test("D", function(){
-
-		});
-
-		test("E", function(){
-			
-		});
 	});	
 });

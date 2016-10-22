@@ -4,17 +4,66 @@ body {background: #333;padding-top: 20px;}
 	margin-bottom: 5px;
 	border: 2px solid #757575;
 
-	.name {
+	& > .name {
 		padding: 3px 6px;
 		background: #ddd;
+	}
+
+	& > .icon {
+		float: left;
+		margin-right: 5px;
+		margin-top: 7px;
+		margin-left: -10px;
+		height: 10px;
+		width: 10px;
+		background: white;
+		border: 1px solid black;
 	}
 }
 
 .block.finished {
 	background: #333;
-	.name {
+	& > .name {
 		background: #555;
 	}
+	& > .icon {
+		background: black;
+	}
+	& > .tag.finished {
+		display: block;
+		background: black;
+	}
+}
+
+.tag {
+	display: none;
+	color: white;
+}
+
+.tags {
+	float: right;
+	margin-top: -20px;
+}
+
+.digging > .tags > .digging.tag {
+	display: inline-block;
+	background: brown;
+}
+
+.scanning > .tags > .tag.scanning {
+	display: inline-block;
+	background: blue;
+}
+
+.repeating > .tags > .tag.repeating {
+	display: inline-block;
+	background: yellow;
+	color: black;
+}
+
+.skipping > .tags > .tag.skipping {
+	display: inline-block;
+	background: grey;
 }
 
 .block .children {
@@ -22,11 +71,21 @@ body {background: #333;padding-top: 20px;}
 }
 
 .node {
-	border: 2px solid red;
+	& > .icon {
+		border: 2px solid red;
+	}
+	& > .tags > .node.tag {
+		display: inline-block;
+		background: orange;
+	}
 }
 
-.next > .name {
-	background: #ccccff;
+.next > .icon {
+	border: 5px solid yellow;
+}
+
+.active > .icon {
+	border: 2px solid blue;
 }
 
 .open {
