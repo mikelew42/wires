@@ -39,8 +39,19 @@ var Block = Base.extend({
 		this.$el = $("<div>").addClass("block");
 		this.$name = $("<div>").addClass("name").text(this.name).appendTo(this.$el);
 		this.$icon = $("<div></div>").addClass("icon").prependTo(this.$el);
+
+		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
+
+		var tags = [
+			"finished", "digging", "scanning", "repeating", "skipping", "node"
+		];
+
+		for (var i = 0; i < tags.length; i++){
+			this.$tags.append( $("<div>").addClass("tag " + tags[i]).text(tags[i]) );
+		}
+
 		// this.$children = $("<div>").addClass("children").appendTo(this.$el);
-		if (this.parent){
+		if (this.parent && this.parent.renderChildContainer){
 			this.parent.renderChildContainer();
 			this.$el.appendTo(this.parent.$children);
 		}
@@ -56,8 +67,8 @@ var Block = Base.extend({
 		block.index = this.children.push(block) - 1;
 
 		// even for first children... this will get cleared when finished
-		if (!this.next)
-			this.setNext(block);
+		// if (!this.next)
+		// 	this.setNext(block);
 	},
 	reAdd: function(block){
 		if (block.finished)
@@ -82,7 +93,7 @@ var Block = Base.extend({
 			parent: this
 		});
 	},
-	add: function(name, fn){
+	add2: function(name, fn){
 		var block = this.blocks[name];
 
 		// has this block been registered?
@@ -92,6 +103,32 @@ var Block = Base.extend({
 		// nope, make a new one
 		else
 			this.newBlock(name, fn);
+	},
+	add: function(name, fn){
+		var block;
+
+		if (this.repeating){
+			block = this.blocks[name];
+			if (block === this.root.nextNodeAncestor){
+				block.repeat();
+			} else if (block === this.root.node){
+				block.dig();
+			}
+		} else if (this.digging){
+			new FirstChildBlock({
+				name: name,
+				fn: fn,
+				parent: this	
+			});
+		} else if (this.scanning){
+			new Block({
+				name: name,
+				fn: fn,
+				parent: this
+			})
+		} else if (this.skipping){
+			return false;
+		}
 	},
 	isRoot: function(){
 		return this === this.root;
@@ -140,19 +177,6 @@ var Block = Base.extend({
 			}
 		}
 	},
-	finish: function(){
-		this.finished = true;
-
-		// we need to clear node before .parent.advance()
-		if (this.root.node === this)
-			this.root.clearNode();
-		
-		this.parent.advance();
-		
-		this.addToCleanup();
-		
-		this.$el.addClass("finished");
-	},
 	addToCleanup: function(){
 		this.root.blocksToClean.push(this);
 	},
@@ -193,6 +217,83 @@ var Block = Base.extend({
 			if (this.runCount > 1)
 				this.finish();
 		}
+	},
+	dig: function(){
+		this.root.clearNode();
+
+		this.digging = true;
+		this.$el.addClass("digging");
+
+		this.run();
+
+		this.finishDig();
+	},
+	finishDig: function(){
+		this.digging = false;
+		this.$el.removeClass("digging");
+
+		this.scanning = false;
+		this.$el.removeClass("scanning");
+
+		if (this.parent.digging){
+			this.parent.digging = false;
+			this.parent.$el.removeClass("digging");
+			
+			this.parent.scanning = true;
+			this.parent.$el.addClass("scanning");
+		}
+
+		if (!this.children.length){
+			this.finish();
+		} else if (this.children.length === 1){
+			if (this.children[0].finished)
+				this.finish();
+		} else if (this.children[1]){
+			this.root.setNode(this.children[1]);
+		}
+	},
+	// child notifies parent when child is finished
+	notify: function(){
+		if (this.digging){
+
+			this.digging = false;
+			this.$el.removeClass("digging");
+
+			this.scanning = true;
+			this.$el.addClass("scanning");
+
+		} else if (this.repeating){
+
+			this.repeating = false;
+			this.$el.removeClass("repeating");
+
+			this.skipping = true;
+			this.$el.addClass("skipping");
+		}
+	},
+	finish: function(){
+		this.finished = true;
+
+		// we need to clear node before .parent.advance()
+		if (this.root.node === this)
+			this.root.clearNode();
+		
+		this.parent.notify();
+		
+		this.addToCleanup();
+		
+		this.$el.removeClass("digging repeating skipping scanning");
+		this.$el.addClass("finished");
+	},
+	repeat: function(){
+		this.repeating = true;
+		this.$el.addClass("repeating");
+
+		this.run();
+		this.finishRepeat();
+	},
+	finishRepeat: function(){
+		
 	}
 });
 
@@ -204,7 +305,7 @@ var FirstChildBlock = Block.extend({
 		this.constructor.base.prototype.init.call(this);
 
 		// always auto exec first child
-		this.exec();
+		this.dig();
 	},
 	run: function(){
 		this.track();
@@ -214,18 +315,6 @@ var FirstChildBlock = Block.extend({
 		this.openLogGroup();
 		this.fn();
 		this.restore();
-	},
-	finish: function(){
-		this.finished = true;
-
-		if (this.root.node === this)
-			this.root.clearNode();
-
-		this.parent.advance();
-		// this.addToCleanup();
-		this.closeLogGroup();
-
-		this.$el.addClass("finished");
 	}
 });
 
@@ -239,6 +328,9 @@ var RootBlock = Block.extend({
 		this.blocksToClean = [];
 	},
 	init_register: function(){},
+	nextNodeAncestor: function(){
+		return this.nodeAncestors[0]
+	},
 	run: function(){
 		this.track();
 
@@ -266,24 +358,44 @@ var RootBlock = Block.extend({
 		this.cleanup();
 		this.conclude();
 	},
+	execRoot: function(){
+		this.dig();
+		this.cleanup();
+		this.conclude();
+	},
 	setNode: function(node){
-		if (!this.node || node.first){
+		if (!this.node){
 			this.node && this.node.$el.removeClass("node");
 			node.$el.addClass("node");
 			this.node = node;
 		}
 	},
 	clearNode: function(){
-		this.node.$el.removeClass("node");
+		this.node && this.node.$el && this.node.$el.removeClass("node");
 		this.node = false;
 	},
 	conclude: function(){
-		if (this.next){
-			this.exec();
+		if (this.node){
+			this.execNode();
 		} else {
 			// this.finish();
 			this.finished = true;
 			this.closeLogGroup();
+		}
+	},
+	finishRepeat: function(){
+		this.conclude();
+	},
+	execNode: function(){
+		this.findNodeAncestors();
+		this.repeat();
+	},
+	findNodeAncestors: function(){
+		var parent = this.node.parent;
+		this.nodeAncestors = [];
+		while (parent !== this){
+			this.nodeAncestors.unshift(parent);
+			parent = parent.parent;
 		}
 	}
 });
@@ -293,16 +405,18 @@ current = new Base({
 	name: "global",
 	init: function(){
 		this.rootBlocks = [];
+		this.$el = $("<div></div>");
 	},
 	add: function(name, fn){
 		var block = new RootBlock({
 			name: name,
-			fn: fn
+			fn: fn,
+			parent: this
 		});
 
 		this.rootBlocks.push(block);
 
-		block.exec();
+		block.execRoot();
 	}
 });
 
