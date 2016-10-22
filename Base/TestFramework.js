@@ -109,7 +109,7 @@ var Block = Base.extend({
 
 		if (this.repeating){
 			block = this.blocks[name];
-			if (block === this.root.nextNodeAncestor){
+			if (block === this.root.nextNodeAncestor()){
 				block.repeat();
 			} else if (block === this.root.node){
 				block.dig();
@@ -235,13 +235,13 @@ var Block = Base.extend({
 		this.scanning = false;
 		this.$el.removeClass("scanning");
 
-		if (this.parent.digging){
-			this.parent.digging = false;
-			this.parent.$el.removeClass("digging");
+		// if (this.parent.digging){
+		// 	this.parent.digging = false;
+		// 	this.parent.$el.removeClass("digging");
 			
-			this.parent.scanning = true;
-			this.parent.$el.addClass("scanning");
-		}
+		// 	this.parent.scanning = true;
+		// 	this.parent.$el.addClass("scanning");
+		// }
 
 		if (!this.children.length){
 			this.finish();
@@ -250,10 +250,10 @@ var Block = Base.extend({
 				this.finish();
 		} else if (this.children[1]){
 			this.root.setNode(this.children[1]);
+			this.parent.skip && this.parent.skip();
 		}
 	},
-	// child notifies parent when child is finished
-	notify: function(){
+	skip: function(){
 		if (this.digging){
 
 			this.digging = false;
@@ -263,7 +263,6 @@ var Block = Base.extend({
 			this.$el.addClass("scanning");
 
 		} else if (this.repeating){
-
 			this.repeating = false;
 			this.$el.removeClass("repeating");
 
@@ -271,23 +270,54 @@ var Block = Base.extend({
 			this.$el.addClass("skipping");
 		}
 	},
+	// child notifies parent when child is finished
+	notify: function(child){
+		if (this.digging){
+
+			this.digging = false;
+			this.$el.removeClass("digging");
+
+			this.scanning = true;
+			this.$el.addClass("scanning");
+
+		} else if (this.repeating){
+			this.repeating = false;
+			this.$el.removeClass("repeating");
+
+			this.skipping = true;
+			this.$el.addClass("skipping");
+
+			// this means the parent is repeating, and has already scanned.. and might have remaining children..
+			if (this.children[child.index + 1]){
+				this.root.setNode(this.children[child.index + 1]);
+			} else {
+				this.finish();
+			}
+		}
+	},
 	finish: function(){
 		this.finished = true;
 
-		// we need to clear node before .parent.advance()
 		if (this.root.node === this)
 			this.root.clearNode();
 		
-		this.parent.notify();
+		this.parent.notify(this);
 		
 		this.addToCleanup();
 		
+		this.skipping = this.digging = this.repeating = this.scanning = false;
 		this.$el.removeClass("digging repeating skipping scanning");
 		this.$el.addClass("finished");
 	},
 	repeat: function(){
+		if (this === this.root.nextNodeAncestor()){
+			this.root.nodeAncestors.pop();
+		}
 		this.repeating = true;
 		this.$el.addClass("repeating");
+
+		this.skipping = false;
+		this.$el.removeClass("skipping");
 
 		this.run();
 		this.finishRepeat();
@@ -310,9 +340,9 @@ var FirstChildBlock = Block.extend({
 	run: function(){
 		this.track();
 		this.capture();
-		// always open group for First Child Block
-			// although, if we remove logging... this doesn't need to happen
-		this.openLogGroup();
+
+		if (!this.repeating)
+			this.openLogGroup();
 		this.fn();
 		this.restore();
 	}
@@ -329,7 +359,7 @@ var RootBlock = Block.extend({
 	},
 	init_register: function(){},
 	nextNodeAncestor: function(){
-		return this.nodeAncestors[0]
+		return this.nodeAncestors[this.nodeAncestors.length - 1];
 	},
 	run: function(){
 		this.track();
@@ -365,18 +395,19 @@ var RootBlock = Block.extend({
 	},
 	setNode: function(node){
 		if (!this.node){
-			this.node && this.node.$el.removeClass("node");
 			node.$el.addClass("node");
 			this.node = node;
+			this.findNodeAncestors();
 		}
 	},
 	clearNode: function(){
 		this.node && this.node.$el && this.node.$el.removeClass("node");
 		this.node = false;
+		this.nodeAncestors = [];
 	},
 	conclude: function(){
 		if (this.node){
-			this.execNode();
+			this.repeat();
 		} else {
 			// this.finish();
 			this.finished = true;
@@ -384,6 +415,7 @@ var RootBlock = Block.extend({
 		}
 	},
 	finishRepeat: function(){
+		this.cleanup();
 		this.conclude();
 	},
 	execNode: function(){
@@ -394,7 +426,7 @@ var RootBlock = Block.extend({
 		var parent = this.node.parent;
 		this.nodeAncestors = [];
 		while (parent !== this){
-			this.nodeAncestors.unshift(parent);
+			this.nodeAncestors.push(parent);
 			parent = parent.parent;
 		}
 	}
@@ -417,7 +449,8 @@ current = new Base({
 		this.rootBlocks.push(block);
 
 		block.execRoot();
-	}
+	},
+	notify: function(){}
 });
 
 var test = exports.test = function(){
