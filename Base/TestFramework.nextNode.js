@@ -43,8 +43,7 @@ var Block = Base.extend({
 	},
 	render: function(){
 		this.$el = $("<div>").addClass("block");
-		this.$name = $("<div>").addClass("name").text(this.name + " - ").appendTo(this.$el);
-		this.$count = $("<span></span>").text(this.runCount).appendTo(this.$name);
+		this.$name = $("<div>").addClass("name").text(this.name).appendTo(this.$el);
 		this.$icon = $("<div></div>").addClass("icon").prependTo(this.$el);
 
 		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
@@ -76,14 +75,10 @@ var Block = Base.extend({
 	repeatOrDig: function(block){
 		if (block.finished){
 			return false;
-		} else if (this.root.node.finished){
-			return false;
 		} else if (block === this.root.nextNodeAncestor()){
 			return block.repeat();
 		} else if (block === this.root.node){
 			return block.dig();
-		} else if (this.skipping){
-			return false;
 		}
 
 		debugger;
@@ -98,10 +93,9 @@ var Block = Base.extend({
 		var block;
 
 		if (this.finished){
-			debugger;
+			// I don't think this ever runs
 			return false;
 		} else if (this.runCount === 0){
-			debugger;
 			console.error("this shouldn't happen");
 		} else if (this.runCount === 1){
 			if (this.children.length){
@@ -123,8 +117,51 @@ var Block = Base.extend({
 			}
 		} else {
 			// runCount > 1
-			return this.repeatOrDig(this.blocks[name]);
+			if (this.skipping)
+				return false;
+			else 
+				return this.repeatOrDig(this.blocks[name]);
 		}
+		
+		// // this.repeating
+		// } else if (this.runCount > 1){ // && !this.finished
+		// 	if (!this.repeating){
+		// 		if (this.skipping)
+		// 			return false;
+		// 		debugger;
+		// 		console.log({
+		// 			digging: this.digging,
+		// 			scanning: this.scanning,
+		// 			repeating: this.repeating,
+		// 			skipping: this.skipping,
+		// 			finished: this.finished
+		// 		});
+		// 	}
+		// 	this.repeatOrDig(this.blocks[name]);
+
+		// // this.digging
+		// // this.runCount === 1
+		// // hmm, not sure if this is correct
+		// } else if (this.digging){
+		// 	new FirstChildBlock({
+		// 		name: name,
+		// 		fn: fn,
+		// 		parent: this	
+		// 	});
+
+		// // this.runCount === 1 && this.children.length (1+)
+		// } else if (this.scanning){
+		// 	new Block({
+		// 		name: name,
+		// 		fn: fn,
+		// 		parent: this
+		// 	});
+
+		// // this.node === finished??  but we clear the node immediately
+		// // 
+		// } else if (this.skipping){
+		// 	return false;
+		// }
 	},
 	isRoot: function(){
 		return this === this.root;
@@ -139,8 +176,6 @@ var Block = Base.extend({
 			this.logGroupOpen = false;
 			debug && this.$el.removeClass("open").addClass("closed");
 			console.groupEnd();
-		} else {
-			debugger;
 		}
 	},
 	capture: function(){
@@ -156,7 +191,6 @@ var Block = Base.extend({
 			throw "Burnout!!!"
 		}
 		this.runCount++;
-		this.$count.text(this.runCount);
 	},
 
 	run: function(suppressLog){
@@ -179,12 +213,45 @@ var Block = Base.extend({
 	addToCleanup: function(){
 		this.root.blocksToClean.push(this);
 	},
-	dig: function(){
-		if (!this.root.node){
-			debugger; // only should happen for first root run? could happen in root.init
-			this.root.setNode(this);
-		}
+	// exec: function(){
+	// 	this.run();
+	// 	// this.findNext();
+	// 	this.conclude();
+	// },
+	// setNext: function(next){
+	// 	this.next && this.next.$el.removeClass("next");
+	// 	next && next.$el.addClass("next");
+	// 	this.next = next;
+	// 	if (next){
+	// 		this.root.setNode(next);
+	// 	}
+	// },
+	// activate: function(block){
+	// 	this.active = block;
+	// 	this.active.$el.addClass("active");
+	// },
+	// deactivate: function(){
+	// 	this.active && this.active.$el.removeClass("active");
+	// 	this.active = false;
+	// 	this.reactivate = true;
+	// },
+	// advance: function(){
+	// 	var next = this.children[this.next.index + 1];
 
+	// 	// when a child finishes and advances parent, we need to clear the active block, so that the .next block doesn't auto-exec 
+	// 	this.deactivate();
+
+	// 	if (next){
+	// 		this.setNext(next);
+	// 	} else {
+	// 		this.setNext(false);
+
+	// 		// on the 2nd+ pass, if there are no more children, we're finished
+	// 		if (this.runCount > 1)
+	// 			this.finish();
+	// 	}
+	// },
+	dig: function(){
 		if (this.root.nextNode){
 			this.root.clearNextNode();
 			console.error("this shouldn't be necessary");
@@ -203,6 +270,14 @@ var Block = Base.extend({
 
 		this.scanning = false;
 		debug && this.$el.removeClass("scanning");
+
+		// if (this.parent.digging){
+		// 	this.parent.digging = false;
+		// 	this.parent.$el.removeClass("digging");
+			
+		// 	this.parent.scanning = true;
+		// 	this.parent.$el.addClass("scanning");
+		// }
 
 		if (!this.children.length){
 			this.finish();
@@ -259,8 +334,8 @@ var Block = Base.extend({
 	finish: function(){
 		this.finished = true;
 
-		// if (this.root.node === this)
-		// 	this.root.clearNode();
+		if (this.root.node === this)
+			this.root.clearNode();
 		
 		this.parent.notify(this);
 		
@@ -294,9 +369,6 @@ var FirstChildBlock = Block.extend({
 	init: function(){
 		// access to the base prototype is dangerous
 		this.constructor.base.prototype.init.call(this);
-
-		// when we find a first child, the parent is currently the node, and digging. here, we want to set this as node..
-		this.root.setNode(this);
 
 		// always auto exec first child
 		this.dig();
@@ -361,6 +433,7 @@ var RootBlock = Block.extend({
 		this.clearNode();
 		debug && node.$el.addClass("node");
 		this.node = node;
+		this.findNodeAncestors();
 	},
 	setNextNode: function(nextNode){
 		if (!this.nextNode){
@@ -380,7 +453,6 @@ var RootBlock = Block.extend({
 	conclude: function(){
 		if (this.nextNode){
 			this.setNode(this.nextNode);
-			this.findNodeAncestors();
 			this.clearNextNode();
 			this.repeat();
 		} else {
@@ -393,6 +465,10 @@ var RootBlock = Block.extend({
 		this.cleanup();
 		this.conclude();
 	},
+	// execNode: function(){
+	// 	this.findNodeAncestors();
+	// 	this.repeat();
+	// },
 	findNodeAncestors: function(){
 		var parent = this.node.parent;
 		this.nodeAncestors = [];
