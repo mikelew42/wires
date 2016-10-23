@@ -155,32 +155,25 @@ var Block = Base.extend({
 		this.restore();
 	},
 	conclude: function(){
-		if (!this.children.length){
-			this.finish();
-		} else {
-			if (this.reactivate){
-				this.reactivate = false;
-				this.activate(this.next);
-			}
+		if (this.runCount === 1){
+			this.finishDig();
+		} else if (this.runCount > 1){
+
 		}
+
 	},
 	addToCleanup: function(){
 		this.root.blocksToClean.push(this);
 	},
 	dig: function(){
-		if (this.root.nextNode){
-			this.root.clearNextNode();
-			console.error("this shouldn't be necessary");
-		}
-
-		this.digging = true;
-		debug && this.$el.addClass("digging");
-
 		this.run();
 
-		this.finishDig();
+		this.conclude();
 	},
 	finishDig: function(){
+		if(this.runCount !== 1){
+			debugger;
+		}
 		this.digging = false;
 		debug && this.$el.removeClass("digging");
 
@@ -194,73 +187,25 @@ var Block = Base.extend({
 				this.finish();
 		} else if (this.children[1]){
 			this.root.setNextNode(this.children[1]);
-			// this.parent.skip && this.parent.skip();
 		}
 	},
-	skip: function(){
-		if (this.digging){
-			// debugger;
 
-			this.digging = false;
-			debug && this.$el.removeClass("digging");
-
-			this.scanning = true;
-			debug && this.$el.addClass("scanning");
-
-		} else if (this.repeating){
-			// debugger; 
-
-			this.repeating = false;
-			debug && this.$el.removeClass("repeating");
-
-			this.skipping = true;
-			debug && this.$el.addClass("skipping");
-		}
-	},
 	// child notifies parent when child is finished
 	notify: function(child){
-		if (this.runCount > 1 && !this.repeating){
-			debugger;
-		}
-
-		if (!this.repeating){
-			debugger;
-		}
-
-		if (this.digging){
-			// debugger;
-
-			// this.digging = false;
-			// debug && this.$el.removeClass("digging");
-
-			// this.scanning = true;
-			// debug && this.$el.addClass("scanning");
-
-		} else if (this.repeating){
-
-			debugger;
-
-			// if (this.runCount < 2)
-			// 	debugger;
-
-			this.repeating = false;
-			debug && this.$el.removeClass("repeating");
-
-			this.skipping = true;
-			debug && this.$el.addClass("skipping");
-
-			// this means the parent is repeating, and has already scanned.. and might have remaining children..
+		
+		if (this.runCount > 1){
 			if (this.children[child.index + 1]){
 				this.root.setNextNode(this.children[child.index + 1]);
 			} else {
 				this.finish();
 			}
-		} else {
-			debugger;
 		}
 	},
 	finish: function(){
 		// debugger;
+		if (this.finished){
+			debugger;
+		}
 
 		this.finished = true;
 
@@ -278,18 +223,26 @@ var Block = Base.extend({
 		if (this === this.root.nextNodeAncestor()){
 			this.root.nodeAncestors.pop();
 		}
-		this.repeating = true;
-		debug && this.$el.addClass("repeating");
-
-		this.skipping = false;
-		debug && this.$el.removeClass("skipping");
 
 		this.run();
-		this.finishRepeat();
+
+		this.conclude();
+		this.rootFinishRepeat();
 	},
-	finishRepeat: function(){
-		
-	}
+	exec: function(){
+		if (this === this.root.nextNodeAncestor()){
+			this.root.nodeAncestors.pop();
+		}
+
+		this.run();
+
+		this.conclude();
+
+		if (this.runCount > 1){
+			this.rootFinishRepeat();
+		}
+	},
+	rootFinishRepeat: function(){}
 });
 
 var FirstChildBlock = Block.extend({
@@ -309,7 +262,7 @@ var FirstChildBlock = Block.extend({
 		this.track();
 		this.capture();
 
-		if (!this.repeating)
+		if (this.runCount === 1)
 			this.openLogGroup();
 		this.fn();
 		this.restore();
@@ -337,7 +290,7 @@ var RootBlock = Block.extend({
 			this.openLogGroup();
 		}
 
-		if (this.node){
+		if (this.node && this.node !== this){
 			this.node.openLogGroup();
 		}
 		
@@ -348,19 +301,21 @@ var RootBlock = Block.extend({
 	cleanup: function(){
 		for (var i = 0; i < this.blocksToClean.length; i++){
 			this.blocksToClean[i].closeLogGroup();
+			console.log("closing " + this.blocksToClean[i].name);
 		}
+		debugger;
 		this.blocksToClean = [];
 	},
 	exec: function(){
 		this.run();
 		this.cleanup();
-		this.conclude();
+		this.rootConclude();
 	},
 	execRoot: function(){
 		this.setNode(this);
 		this.dig();
 		this.cleanup();
-		this.conclude();
+		this.rootConclude();
 	},
 	setNode: function(node){
 		this.clearNode();
@@ -382,7 +337,7 @@ var RootBlock = Block.extend({
 		debug && this.nextNode && this.nextNode.$el && this.nextNode.$el.removeClass("nextNode");
 		this.nextNode = false;
 	},
-	conclude: function(){
+	rootConclude: function(){
 		if (this.nextNode){
 			this.setNode(this.nextNode);
 			this.findNodeAncestors();
@@ -395,9 +350,9 @@ var RootBlock = Block.extend({
 			// this.closeLogGroup();
 		}
 	},
-	finishRepeat: function(){
+	rootFinishRepeat: function(){
 		this.cleanup();
-		this.conclude();
+		this.rootConclude();
 	},
 	findNodeAncestors: function(){
 		var parent = this.node.parent;
