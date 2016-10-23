@@ -86,8 +86,6 @@ var Block = Base.extend({
 			return false;
 		}
 
-		debugger;
-
 		// block may be finished (before the nextNodeAncestor)
 		// or after the nextNodeAncestor (to be run in the future)
 			// we can just let these fall through...
@@ -180,11 +178,6 @@ var Block = Base.extend({
 		this.root.blocksToClean.push(this);
 	},
 	dig: function(){
-		if (!this.root.node){
-			debugger; // only should happen for first root run? could happen in root.init
-			this.root.setNode(this);
-		}
-
 		if (this.root.nextNode){
 			this.root.clearNextNode();
 			console.error("this shouldn't be necessary");
@@ -216,6 +209,7 @@ var Block = Base.extend({
 	},
 	skip: function(){
 		if (this.digging){
+			debugger;
 
 			this.digging = false;
 			debug && this.$el.removeClass("digging");
@@ -224,6 +218,8 @@ var Block = Base.extend({
 			debug && this.$el.addClass("scanning");
 
 		} else if (this.repeating){
+			debugger; 
+			
 			this.repeating = false;
 			debug && this.$el.removeClass("repeating");
 
@@ -234,6 +230,7 @@ var Block = Base.extend({
 	// child notifies parent when child is finished
 	notify: function(child){
 		if (this.digging){
+			debugger;
 
 			this.digging = false;
 			debug && this.$el.removeClass("digging");
@@ -254,6 +251,8 @@ var Block = Base.extend({
 			} else {
 				this.finish();
 			}
+		} else {
+			debugger;
 		}
 	},
 	finish: function(){
@@ -261,10 +260,9 @@ var Block = Base.extend({
 
 		// if (this.root.node === this)
 		// 	this.root.clearNode();
+		this.addToCleanup();
 		
 		this.parent.notify(this);
-		
-		this.addToCleanup();
 		
 		this.skipping = this.digging = this.repeating = this.scanning = false;
 		debug && this.$el.removeClass("digging repeating skipping scanning");
@@ -353,6 +351,7 @@ var RootBlock = Block.extend({
 		this.conclude();
 	},
 	execRoot: function(){
+		this.setNode(this);
 		this.dig();
 		this.cleanup();
 		this.conclude();
@@ -385,8 +384,9 @@ var RootBlock = Block.extend({
 			this.repeat();
 		} else {
 			// this.finish();
+			// finished vs complete vs ...?
 			this.finished = true;
-			this.closeLogGroup();
+			// this.closeLogGroup();
 		}
 	},
 	finishRepeat: function(){
