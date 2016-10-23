@@ -159,5 +159,15 @@ $(function(){
 
 		console.log("Root.cleanup");
 		console.assert(next() === 5);
-	});	
+	});
+
+	// test("Root2", function(){
+	// 	// that's it
+	// });
+
+	// test("Root3", function(){
+	// 	test("A", function(){
+			
+	// 	});
+	// });
 });

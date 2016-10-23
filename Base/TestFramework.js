@@ -95,24 +95,14 @@ var Block = Base.extend({
 	add: function(name, fn){
 		var block;
 
-		if (this.finished){
-			debugger;
-			return false;
-		} else if (this.runCount === 0){
-			debugger;
-			console.error("this shouldn't happen");
-		} else if (this.runCount === 1){
+		if (this.runCount === 1){
 			if (this.children.length){
-				if (!this.scanning)
-					console.error("whoops");
 				return new Block({
 					name: name,
 					fn: fn,
 					parent: this
 				})
 			} else {
-				if (!this.digging)
-					console.error("whoops");
 				return new FirstChildBlock({
 					name: name,
 					fn: fn,
@@ -204,12 +194,12 @@ var Block = Base.extend({
 				this.finish();
 		} else if (this.children[1]){
 			this.root.setNextNode(this.children[1]);
-			this.parent.skip && this.parent.skip();
+			// this.parent.skip && this.parent.skip();
 		}
 	},
 	skip: function(){
 		if (this.digging){
-			debugger;
+			// debugger;
 
 			this.digging = false;
 			debug && this.$el.removeClass("digging");
@@ -218,8 +208,8 @@ var Block = Base.extend({
 			debug && this.$el.addClass("scanning");
 
 		} else if (this.repeating){
-			debugger; 
-			
+			// debugger; 
+
 			this.repeating = false;
 			debug && this.$el.removeClass("repeating");
 
@@ -229,16 +219,30 @@ var Block = Base.extend({
 	},
 	// child notifies parent when child is finished
 	notify: function(child){
-		if (this.digging){
+		if (this.runCount > 1 && !this.repeating){
 			debugger;
+		}
 
-			this.digging = false;
-			debug && this.$el.removeClass("digging");
+		if (!this.repeating){
+			debugger;
+		}
 
-			this.scanning = true;
-			debug && this.$el.addClass("scanning");
+		if (this.digging){
+			// debugger;
+
+			// this.digging = false;
+			// debug && this.$el.removeClass("digging");
+
+			// this.scanning = true;
+			// debug && this.$el.addClass("scanning");
 
 		} else if (this.repeating){
+
+			debugger;
+
+			// if (this.runCount < 2)
+			// 	debugger;
+
 			this.repeating = false;
 			debug && this.$el.removeClass("repeating");
 
@@ -256,6 +260,8 @@ var Block = Base.extend({
 		}
 	},
 	finish: function(){
+		// debugger;
+
 		this.finished = true;
 
 		// if (this.root.node === this)
