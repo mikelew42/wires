@@ -161,13 +161,13 @@ $(function(){
 		console.assert(next() === 5);
 	});
 
-	// test("Root2", function(){
-	// 	// that's it
-	// });
+	test("Root2", function(){
+		// that's it
+	});
 
-	// test("Root3", function(){
-	// 	test("A", function(){
+	test("Root3", function(){
+		test("A", function(){
 			
-	// 	});
-	// });
+		});
+	});
 });

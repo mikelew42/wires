@@ -5,17 +5,33 @@ var $ = require("jquery");
 
 require("./testStyles.less");
 
-var debug = true;
+var debug = true, current;
 
 
-var $panel;
+var $body;
 $(function(){
 	if (debug)
-		$panel = $("<div>TestFramework debug panel</div>").appendTo("body");
+		$body = $("body");
+
+	// create this on doc.ready, so we can render it
+	current = new Block({
+		name: "Test Framework",
+		init_root: function(){},
+		init_register: function(){},
+		add: function(name, fn){
+			var block = new RootBlock({
+				name: name,
+				fn: fn,
+				parent: this
+			});
+
+			// this.rootBlocks.push(block);
+
+			// block.execRoot();
+		},
+		notify: function(){}
+	});
 });
-
-
-var current;
 
 var Block = Base.extend({
 	name: "Block",
@@ -25,6 +41,14 @@ var Block = Base.extend({
 		// render before register
 		debug && this.render();
 		this.init_register();
+
+		this.init_firstChild();
+	},
+	init_firstChild: function(){
+		if (this.index === 0){
+			this.root.setNode(this);
+			this.exec();
+		}
 	},
 	init_props: function(){
 		this.blocks = {}; // { block.name: block }
@@ -63,7 +87,7 @@ var Block = Base.extend({
 			this.$el.appendTo(this.parent.$children);
 		}
 		else 
-			this.$el.appendTo($panel);
+			this.$el.appendTo($body);
 	},
 	renderChildContainer: function(){
 		this.$children = this.$children ||
@@ -79,36 +103,22 @@ var Block = Base.extend({
 		} else if (this.root.node.finished){
 			return false;
 		} else if (block === this.root.nextNodeAncestor()){
-			return block.repeat();
+			return block.exec();
 		} else if (block === this.root.node){
-			return block.dig();
+			return block.exec();
 		} else if (this.skipping){
 			return false;
 		}
-
-		// block may be finished (before the nextNodeAncestor)
-		// or after the nextNodeAncestor (to be run in the future)
-			// we can just let these fall through...
-
-			// i could make a "skip" tag that appears when a block is skipped, and disappears on the next iteration
 	},
 	add: function(name, fn){
 		var block;
 
 		if (this.runCount === 1){
-			if (this.children.length){
-				return new Block({
-					name: name,
-					fn: fn,
-					parent: this
-				})
-			} else {
-				return new FirstChildBlock({
-					name: name,
-					fn: fn,
-					parent: this
-				});
-			}
+			return new Block({
+				name: name,
+				fn: fn,
+				parent: this
+			})
 		} else {
 			// runCount > 1
 			return this.repeatOrDig(this.blocks[name]);
@@ -148,20 +158,11 @@ var Block = Base.extend({
 	},
 
 	run: function(suppressLog){
-		this.track();
 		this.capture();
-		// run the block fn
 		this.fn();
 		this.restore();
 	},
-	conclude: function(){
-		if (this.runCount === 1){
-			this.finishDig();
-		} else if (this.runCount > 1){
 
-		}
-
-	},
 	addToCleanup: function(){
 		this.root.blocksToClean.push(this);
 	},
@@ -229,48 +230,47 @@ var Block = Base.extend({
 		this.conclude();
 		this.rootFinishRepeat();
 	},
-	exec: function(){
+	prep: function(){
+		this.track();
+		this.advanceAncestor();
+		this.openFirstChildGroup();
+	},
+	openFirstChildGroup: function(){
+		// if first run of first child
+		if (this.index === 0 && this.runCount === 1){
+			this.openLogGroup();
+		}
+	},
+	advanceAncestor: function(){
 		if (this === this.root.nextNodeAncestor()){
 			this.root.nodeAncestors.pop();
 		}
-
+	},
+	exec: function(){
+		this.prep();
 		this.run();
-
 		this.conclude();
-
-		if (this.runCount > 1){
-			this.rootFinishRepeat();
+	},
+	rootFinishRepeat: function(){},
+	conclude: function(){
+		if (this.runCount === 1){
+			this.finishDig();
+		} else if (this.runCount > 1){
+			// this.rootFinishRepeat();
 		}
-	},
-	rootFinishRepeat: function(){}
-});
-
-var FirstChildBlock = Block.extend({
-	name: "FirstChildBlock",
-	first: true,
-	init: function(){
-		// access to the base prototype is dangerous
-		this.constructor.base.prototype.init.call(this);
-
-		// when we find a first child, the parent is currently the node, and digging. here, we want to set this as node..
-		this.root.setNode(this);
-
-		// always auto exec first child
-		this.dig();
-	},
-	run: function(){
-		this.track();
-		this.capture();
-
-		if (this.runCount === 1)
-			this.openLogGroup();
-		this.fn();
-		this.restore();
 	}
 });
 
 var RootBlock = Block.extend({
 	name: "RootBlock",
+	init: function(){
+		this.constructor.base.prototype.init.call(this);
+		// this.parent.rootBlocks.push(this);
+		this.setNode(this);
+		this.exec();
+		this.done();
+	},
+	init_firstChild: function(){},
 	init_root: function(){
 		this.root = this;
 	},
@@ -278,19 +278,13 @@ var RootBlock = Block.extend({
 		this.constructor.base.prototype.init_props.call(this);
 		this.blocksToClean = [];
 	},
-	init_register: function(){},
 	nextNodeAncestor: function(){
 		return this.nodeAncestors[this.nodeAncestors.length - 1];
 	},
-	run: function(){
+	runRoot: function(){
 		this.track();
 
-		// should we open Root log group from the globalBlock / Block Manager?
-		if (this.runCount === 1){
-			this.openLogGroup();
-		}
-
-		if (this.node && this.node !== this){
+		if (this.node){
 			this.node.openLogGroup();
 		}
 		
@@ -301,15 +295,22 @@ var RootBlock = Block.extend({
 	cleanup: function(){
 		for (var i = 0; i < this.blocksToClean.length; i++){
 			this.blocksToClean[i].closeLogGroup();
-			console.log("closing " + this.blocksToClean[i].name);
+			// console.log("closing " + this.blocksToClean[i].name);
 		}
-		debugger;
 		this.blocksToClean = [];
 	},
+	prep: function(){
+		this.track();
+		this.advanceAncestor();
+
+		this.node.openLogGroup();
+	},
 	exec: function(){
+		this.prep();
 		this.run();
+		this.conclude();
 		this.cleanup();
-		this.rootConclude();
+		this.done();
 	},
 	execRoot: function(){
 		this.setNode(this);
@@ -350,9 +351,22 @@ var RootBlock = Block.extend({
 			// this.closeLogGroup();
 		}
 	},
+	done: function(){
+		if (this.nextNode){
+			this.setNode(this.nextNode);
+			this.findNodeAncestors();
+			this.clearNextNode();
+			this.exec();
+		} else {
+			// this.finish();
+			// finished vs complete vs ...?
+			this.finished = true;
+			// this.closeLogGroup();
+		}
+	},
 	rootFinishRepeat: function(){
 		this.cleanup();
-		this.rootConclude();
+		this.done();
 	},
 	findNodeAncestors: function(){
 		var parent = this.node.parent;
@@ -362,28 +376,6 @@ var RootBlock = Block.extend({
 			parent = parent.parent;
 		}
 	}
-});
-
-
-current = new Base({
-	name: "global",
-	init: function(){
-		this.rootBlocks = [];
-		if (debug)
-			this.$el = $("<div></div>");
-	},
-	add: function(name, fn){
-		var block = new RootBlock({
-			name: name,
-			fn: fn,
-			parent: this
-		});
-
-		this.rootBlocks.push(block);
-
-		block.execRoot();
-	},
-	notify: function(){}
 });
 
 var test = exports.test = function(){
