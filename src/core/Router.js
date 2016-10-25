@@ -24,13 +24,17 @@ var Router = module.exports = Base.extend({
 	},
 	matchCurrentRoute: function(){
 		// this.log && console.group("matching route ...");
-		this.each(function(route){
-			if (route.pathname === window.location.pathname){
-				// this.log && console.group('matched', route.pathname);
-				route.runCBs()
-				// this.log && console.groupEnd();
-			}
-		});
+		if (!this.matched){
+			this.each(function(route){
+				if (route.pathname === window.location.pathname){
+					// this.log && console.group('matched', route.pathname);
+					route.runCBs();
+					this.matched = true;
+					// this.log && console.groupEnd();
+				}
+			});
+			
+		}
 		// this.log && console.groupEnd();
 	},
 	addRoutes: function(){

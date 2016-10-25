@@ -10,9 +10,11 @@ var Link = module.exports = View.extend({
 		this.$el = $("<a>").attr("href", this.route.pathname).html(this.route.label).click(this.clickHandler.bind(this));
 	},
 	clickHandler: function(e){
-		console.group(this.route.label + " click handler");
-		e.preventDefault();
-		this.route.activate();
-		console.groupEnd();
+		// console.group(this.route.label + " click handler");
+		if (!this.route.allowDefault){
+			e.preventDefault();
+			this.route.activate();
+		}
+		// console.groupEnd();
 	}
 });

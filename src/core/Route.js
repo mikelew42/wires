@@ -7,7 +7,7 @@ var Route = module.exports = Base.extend({
 	label: "Default Route Label",
 	init: function(){
 		this.cbs = [];
-		if (this.pathname[0] !== "/")
+		if (this.pathname[0] !== "/" && !this.relative)
 			this.pathname = "/" + this.pathname;
 		if (this.pathname[this.pathname.length - 1] !== "/")
 			this.pathname = this.pathname + "/";

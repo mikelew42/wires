@@ -1,4 +1,4 @@
-var TestFramework = require("./Base/TestFramework");
+var TestFramework = require("../Base/TestFramework");
 var test = TestFramework.test;
 var $ = require("jquery");
 
