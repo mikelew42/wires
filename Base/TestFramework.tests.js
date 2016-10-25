@@ -133,28 +133,6 @@ $(function(){
 			console.assert(next() === 20);
 		});
 
-		// test("D", function(){
-		// 	test("D1", function(){
-		// 		test("D1a", function(){
-		// 			test("D1a1", function(){
-		// 				test("D1a1a", function(){});
-		// 				test("D1a1b", function(){});
-		// 				test("D1a1c", function(){});
-		// 			});
-		// 		});
-		// 	});
-		// 	test("D2", function(){
-		// 		test("D2a", function(){
-		// 			test("D2a1", function(){
-		// 				test("D2a1a", function(){});
-		// 			});
-		// 		});
-		// 		test("D2b", function(){});
-		// 		test("D2c", function(){});
-		// 	});
-		// 	test("D3", function(){});
-		// });
-
 		// test("E", function(){});
 
 		console.log("Root.cleanup");
@@ -167,7 +145,32 @@ $(function(){
 
 	test("Root3", function(){
 		test("A", function(){
-			
+			test("A1", function(){
+				test("A1a", function(){});
+				test("A1b", function(){});
+			});
 		});
+	});
+
+	test("D", function(){
+		test("D1", function(){
+			test("D1a", function(){
+				test("D1a1", function(){
+					test("D1a1a", function(){});
+					test("D1a1b", function(){});
+					test("D1a1c", function(){});
+				});
+			});
+		});
+		test("D2", function(){
+			test("D2a", function(){
+				test("D2a1", function(){
+					test("D2a1a", function(){});
+				});
+			});
+			test("D2b", function(){});
+			test("D2c", function(){});
+		});
+		test("D3", function(){});
 	});
 });

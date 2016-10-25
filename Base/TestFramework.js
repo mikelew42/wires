@@ -16,6 +16,7 @@ $(function(){
 	// create this on doc.ready, so we can render it
 	current = new Block({
 		name: "Test Framework",
+		global: true,
 		init_root: function(){},
 		init_register: function(){},
 		add: function(name, fn){
@@ -34,6 +35,7 @@ $(function(){
 });
 
 var Block = Base.extend({
+	v2: true,
 	name: "Block",
 	init: function(){
 		this.init_props();
@@ -41,6 +43,8 @@ var Block = Base.extend({
 		// render before register
 		debug && this.render();
 		this.init_register();
+		// has to come before init_firstChild...
+		this.v2 && this.init_conclude();
 
 		this.init_firstChild();
 	},
@@ -78,7 +82,7 @@ var Block = Base.extend({
 		];
 
 		for (var i = 0; i < tags.length; i++){
-			this.$tags.append( $("<div>").addClass("tag " + tags[i]).text(tags[i]) );
+			this["$tag_" + tags[i]] = $("<div>").addClass("tag " + tags[i]).text(tags[i]).appendTo(this.$tags);
 		}
 
 		// this.$children = $("<div>").addClass("children").appendTo(this.$el);
@@ -96,8 +100,17 @@ var Block = Base.extend({
 	addChild: function(block){
 		// add to the children array, and store the index on the block
 		block.index = this.children.push(block) - 1;
+
+		if (this.v2){
+			if (!this.global){
+				if (block.index === 0)
+					this.registerFirstChild();
+				else if (block.index === 1)
+					this.registerSecondChild(block);
+			}
+		}
 	},
-	repeatOrDig: function(block){
+	reAdd: function(block){
 		if (block.finished){
 			return false;
 		} else if (this.root.node.finished){
@@ -106,23 +119,72 @@ var Block = Base.extend({
 			return block.exec();
 		} else if (block === this.root.node){
 			return block.exec();
-		} else if (this.skipping){
+		} else {
 			return false;
 		}
 	},
 	add: function(name, fn){
-		var block;
-
-		if (this.runCount === 1){
+		var block = this.blocks[name];
+		if (block){
+			return this.reAdd(block);
+		} else {
 			return new Block({
 				name: name,
 				fn: fn,
 				parent: this
-			})
-		} else {
-			// runCount > 1
-			return this.repeatOrDig(this.blocks[name]);
+			}); 
 		}
+	},
+	init_conclude: function(){
+		// by default, change if needed
+		this.conclude = this.finish;
+	},
+	nothing: function(){},
+	registerFirstChild: function(){
+		// this is important
+			// if 0 children, this doesn't run, and default conclude => finish
+			// if 1 child, and does finish, then we call notify, which resets conclude => finish
+			// if 1 child, and does not finish, then we do nothing
+		this.conclude = this.nothing;
+		if (this.v2)
+			this.notify2 = this.init_conclude;
+		else
+			this.notify = this.init_conclude; // or this.resetConclude? 
+	},
+	registerSecondChild: function(secondChild){
+		// default conclude => finish, or, in the case of unfinished first child, then conclude => nothing
+		// either way, we want to make sure conclude => nothing
+		this.conclude = this.nothing;
+
+		// only runs in "scan" mode, on first run...?  registerFirstChild vs reAddFirstChild
+		// we don't know how many children we'll have, but we know we have at least a second
+		// all that matters at this point, is.. first child finished?
+
+		if (this.children[0].finished){
+			if (this.root.nextNode)
+				console.error("shouldn't have a nextNode if first child finished");
+
+			this.root.setNextNode(secondChild);
+			// this.conclude = this.nothing; // already done
+		} else {
+			// leave conclude => nothing
+		}
+	},
+	notify2: function(child){
+		console.group("notify for " + this.name);
+		if (this.children[child.index + 1]){
+			console.log("has nextChild");
+			if (!this.root.nextNode){
+				console.log("no nextNode, set to nextChild");
+				this.root.setNextNode(this.children[child.index + 1]);
+			} else {
+				console.log("already have nextNode");
+			}
+		} else {
+			console.log("no nextChild, .finish()");
+			this.finish("notified");
+		}
+		console.groupEnd();
 	},
 	isRoot: function(){
 		return this === this.root;
@@ -166,69 +228,68 @@ var Block = Base.extend({
 	addToCleanup: function(){
 		this.root.blocksToClean.push(this);
 	},
-	dig: function(){
-		this.run();
+	concludeFirstRun: function(){
+		console.group("concludeFirstRun for " + this.name);
 
-		this.conclude();
-	},
-	finishDig: function(){
-		if(this.runCount !== 1){
-			debugger;
-		}
-		this.digging = false;
-		debug && this.$el.removeClass("digging");
 
-		this.scanning = false;
-		debug && this.$el.removeClass("scanning");
-
+		// false.  on repeat, we can still "dig", and conclude a child's first run, when the parent is in 2nd+ run.  these logs CAN and DO trigger notify actions...
 		if (!this.children.length){
-			this.finish();
+			this.finish("empty");
+			console.log("empty");
 		} else if (this.children.length === 1){
-			if (this.children[0].finished)
-				this.finish();
+			if (this.children[0].finished){
+				this.finish("1.finished");
+				console.log("1.finished");
+			} else {
+				console.warn("1.unfinished");
+			}
 		} else if (this.children[1]){
-			this.root.setNextNode(this.children[1]);
+			console.log("has 2nd child");
+			if (!this.root.nextNode){
+				console.log("no nextNode, setNextNode(2ndChild)");
+				this.root.setNextNode(this.children[1]);
+			} else {
+				if (this.children[0].finished)
+					console.error("if we have nextNode, that should mean first child didn't finish");
+				console.warn("already have nextNode, do nothing");
+			}
 		}
+		console.groupEnd();
 	},
 
 	// child notifies parent when child is finished
 	notify: function(child){
-		
 		if (this.runCount > 1){
+			console.group("notify for " + this.name);
 			if (this.children[child.index + 1]){
-				this.root.setNextNode(this.children[child.index + 1]);
+				console.log("has nextChild");
+				if (!this.root.nextNode){
+					console.log("no nextNode, set to nextChild");
+					this.root.setNextNode(this.children[child.index + 1]);
+				} else {
+					console.log("already have nextNode");
+				}
 			} else {
-				this.finish();
+				console.log("no nextChild, .finish()");
+				this.finish("notified");
 			}
+			console.groupEnd();
 		}
 	},
-	finish: function(){
-		// debugger;
-		if (this.finished){
-			debugger;
-		}
+	finish: function(reason){
 
 		this.finished = true;
-
-		// if (this.root.node === this)
-		// 	this.root.clearNode();
+		debug && this.$el.addClass("finished");
+		debug && this.$tag_finished.append(" - " + reason);
+		
 		this.addToCleanup();
 		
-		this.parent.notify(this);
-		
-		this.skipping = this.digging = this.repeating = this.scanning = false;
-		debug && this.$el.removeClass("digging repeating skipping scanning");
-		debug && this.$el.addClass("finished");
-	},
-	repeat: function(){
-		if (this === this.root.nextNodeAncestor()){
-			this.root.nodeAncestors.pop();
+		if (this.v2){
+			this.parent.notify2(this);
+		} else {
+			this.parent.notify(this);
 		}
-
-		this.run();
-
-		this.conclude();
-		this.rootFinishRepeat();
+		
 	},
 	prep: function(){
 		this.track();
@@ -251,12 +312,9 @@ var Block = Base.extend({
 		this.run();
 		this.conclude();
 	},
-	rootFinishRepeat: function(){},
 	conclude: function(){
 		if (this.runCount === 1){
-			this.finishDig();
-		} else if (this.runCount > 1){
-			// this.rootFinishRepeat();
+			this.concludeFirstRun();
 		}
 	}
 });
@@ -281,17 +339,6 @@ var RootBlock = Block.extend({
 	nextNodeAncestor: function(){
 		return this.nodeAncestors[this.nodeAncestors.length - 1];
 	},
-	runRoot: function(){
-		this.track();
-
-		if (this.node){
-			this.node.openLogGroup();
-		}
-		
-		this.capture();
-		this.fn();
-		this.restore();
-	},
 	cleanup: function(){
 		for (var i = 0; i < this.blocksToClean.length; i++){
 			this.blocksToClean[i].closeLogGroup();
@@ -307,16 +354,11 @@ var RootBlock = Block.extend({
 	},
 	exec: function(){
 		this.prep();
+		debugger;
 		this.run();
 		this.conclude();
 		this.cleanup();
 		this.done();
-	},
-	execRoot: function(){
-		this.setNode(this);
-		this.dig();
-		this.cleanup();
-		this.rootConclude();
 	},
 	setNode: function(node){
 		this.clearNode();
@@ -324,10 +366,10 @@ var RootBlock = Block.extend({
 		this.node = node;
 	},
 	setNextNode: function(nextNode){
-		if (!this.nextNode){
+		// if (!this.nextNode){
 			debug && nextNode.$el.addClass("nextNode");
 			this.nextNode = nextNode;
-		}
+		// }
 	},
 	clearNode: function(){
 		debug && this.node && this.node.$el && this.node.$el.removeClass("node");
@@ -337,19 +379,6 @@ var RootBlock = Block.extend({
 	clearNextNode: function(){
 		debug && this.nextNode && this.nextNode.$el && this.nextNode.$el.removeClass("nextNode");
 		this.nextNode = false;
-	},
-	rootConclude: function(){
-		if (this.nextNode){
-			this.setNode(this.nextNode);
-			this.findNodeAncestors();
-			this.clearNextNode();
-			this.repeat();
-		} else {
-			// this.finish();
-			// finished vs complete vs ...?
-			this.finished = true;
-			// this.closeLogGroup();
-		}
 	},
 	done: function(){
 		if (this.nextNode){
@@ -363,10 +392,6 @@ var RootBlock = Block.extend({
 			this.finished = true;
 			// this.closeLogGroup();
 		}
-	},
-	rootFinishRepeat: function(){
-		this.cleanup();
-		this.done();
 	},
 	findNodeAncestors: function(){
 		var parent = this.node.parent;
