@@ -76,7 +76,7 @@ var Block = Base.extend({
 		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
 
 		var tags = [
-			"finished", "digging", "scanning", "repeating", "skipping", "node", "nextNode"
+			"finished", "node", "nextNode"
 		];
 
 		for (var i = 0; i < tags.length; i++){

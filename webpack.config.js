@@ -7,9 +7,9 @@ var entry = {
   // "./public/main": './src/entry.js'
 };
 
-var files = globule.find("./**/*.entry.js", "!./node_modules/**", "!./jasmine/**").forEach(function(filePath){
+var files = globule.find("./src/**/*.entry.js").forEach(function(filePath){
   var entryName = filePath.replace(path.extname(filePath), "");
-  entryName = entryName.replace(".entry", "");
+  entryName = entryName.replace(".entry", "").replace("./src", "");
   console.log(entryName);
   entry[entryName] = filePath;
 });
@@ -18,7 +18,7 @@ module.exports = {
   devtool: 'inline-source-map',
   entry: entry,
   output: {
-    path: './',
+    path: './build/',
     filename: '[name].bundle.js'
   },
   module: {
