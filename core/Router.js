@@ -1,4 +1,4 @@
-var Base = require("../Base/Logged");
+var Base = require("../Base");
 var Route = require("./Route");
 var History = require("history").createBrowserHistory;
 
@@ -9,11 +9,11 @@ var Router = module.exports = Base.extend({
 		this.history = History();
 		var router = this;
 		this.history.listen(function(location, action){
-			console.group("history.listen");
-			console.log("location", location);
-			console.log("action", action);
+			// console.group("history.listen");
+			// console.log("location", location);
+			// console.log("action", action);
 			router.matchCurrentRoute();
-			console.groupEnd();
+			// console.groupEnd();
 		});
 	},
 	each: function(fn){
@@ -23,15 +23,15 @@ var Router = module.exports = Base.extend({
 		return this;
 	},
 	matchCurrentRoute: function(){
-		this.log && console.group("matching route ...");
+		// this.log && console.group("matching route ...");
 		this.each(function(route){
 			if (route.pathname === window.location.pathname){
-				this.log && console.group('matched', route.pathname);
+				// this.log && console.group('matched', route.pathname);
 				route.runCBs()
-				this.log && console.groupEnd();
+				// this.log && console.groupEnd();
 			}
 		});
-		this.log && console.groupEnd();
+		// this.log && console.groupEnd();
 	},
 	addRoutes: function(){
 		for (var i = 0; i < arguments.length; i++){

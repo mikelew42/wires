@@ -1,4 +1,4 @@
-var Base = require("../Base/Logged");
+var Base = require("../Base");
 var Link = require("./Link");
 var history = require("history").createBrowserHistory();
 
@@ -18,21 +18,21 @@ var Route = module.exports = Base.extend({
 		});
 	},
 	activate: function(){
-		this.log && console.group("Route.activate");
+		// this.log && console.group("Route.activate");
 		if (window.location.pathname !== this.pathname){
 			this.changeURL();
 			this.runCBs();
 		} else {
-			this.log && console.log("pathname unchanged");
+			// this.log && console.log("pathname unchanged");
 		}
-		this.log && console.groupEnd();
+		// this.log && console.groupEnd();
 	},
 	changeURL: function(){
-		this.log && console.log('Route.changeURL');
+		// this.log && console.log('Route.changeURL');
 		this.router.activateRoute(this);
 	},
 	runCBs: function(){
-		this.log && console.log("Route.runCBs");
+		// this.log && console.log("Route.runCBs");
 		for (var i = 0; i < this.cbs.length; i++){
 			this.cbs[i].call(this);
 		}
