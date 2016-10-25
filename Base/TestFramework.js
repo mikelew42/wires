@@ -2,22 +2,57 @@ var is = require("../is");
 var Base = require("./Base");
 
 var $ = require("jquery");
+
 require("./testStyles.less");
-var $panel;
+
+var debug = true, current;
+
+
+var $body;
 $(function(){
-	$panel = $("<div>panel</div>").appendTo("body");
+	if (debug)
+		$body = $("body");
+
+	// create this on doc.ready, so we can render it
+	current = new Block({
+		name: "Test Framework",
+		global: true,
+		init_root: function(){},
+		init_register: function(){},
+		add: function(name, fn){
+			var block = new RootBlock({
+				name: name,
+				fn: fn,
+				parent: this
+			});
+
+			// this.rootBlocks.push(block);
+
+			// block.execRoot();
+		},
+		notify: function(){}
+	});
 });
 
-var current;
-
 var Block = Base.extend({
+	v2: true,
 	name: "Block",
 	init: function(){
 		this.init_props();
 		this.init_root();
 		// render before register
-		this.render();
+		debug && this.render();
 		this.init_register();
+		// has to come before init_firstChild...
+		this.v2 && this.init_conclude();
+
+		this.init_firstChild();
+	},
+	init_firstChild: function(){
+		if (this.index === 0){
+			this.root.setNode(this);
+			this.exec();
+		}
 	},
 	init_props: function(){
 		this.blocks = {}; // { block.name: block }
@@ -31,23 +66,23 @@ var Block = Base.extend({
 		// store blocks by name
 		this.parent.blocks[this.name] = this;
 
-		// add to parent
-			// must happen within child.init instead of parent.addChild(new Block()), so that it gets registered BEFORE auto-exec (FirstChildBlock feature)
+		// add child to parent
 		this.parent.addChild(this);
 	},
 	render: function(){
 		this.$el = $("<div>").addClass("block");
-		this.$name = $("<div>").addClass("name").text(this.name).appendTo(this.$el);
+		this.$name = $("<div>").addClass("name").text(this.name + " - ").appendTo(this.$el);
+		this.$count = $("<span></span>").text(this.runCount).appendTo(this.$name);
 		this.$icon = $("<div></div>").addClass("icon").prependTo(this.$el);
 
 		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
 
 		var tags = [
-			"finished", "digging", "scanning", "repeating", "skipping", "node"
+			"finished", "digging", "scanning", "repeating", "skipping", "node", "nextNode"
 		];
 
 		for (var i = 0; i < tags.length; i++){
-			this.$tags.append( $("<div>").addClass("tag " + tags[i]).text(tags[i]) );
+			this["$tag_" + tags[i]] = $("<div>").addClass("tag " + tags[i]).text(tags[i]).appendTo(this.$tags);
 		}
 
 		// this.$children = $("<div>").addClass("children").appendTo(this.$el);
@@ -56,7 +91,7 @@ var Block = Base.extend({
 			this.$el.appendTo(this.parent.$children);
 		}
 		else 
-			this.$el.appendTo($panel);
+			this.$el.appendTo($body);
 	},
 	renderChildContainer: function(){
 		this.$children = this.$children ||
@@ -66,83 +101,106 @@ var Block = Base.extend({
 		// add to the children array, and store the index on the block
 		block.index = this.children.push(block) - 1;
 
-		// even for first children... this will get cleared when finished
-		// if (!this.next)
-		// 	this.setNext(block);
+		if (this.v2){
+			if (!this.global){
+				if (block.index === 0)
+					this.registerFirstChild();
+				else if (block.index === 1)
+					this.registerSecondChild(block);
+			}
+		}
 	},
 	reAdd: function(block){
-		if (block.finished)
+		if (block.finished){
 			return false;
-		else if (block === this.active)
-			block.exec();
-		else 
+		} else if (this.root.node.finished){
 			return false;
-	},
-	newBlock: function(name, fn){
-		var BlockType;
-
-		if (this.children.length)
-			BlockType = Block;
-		else
-			BlockType = FirstChildBlock;
-
-		// the block will register itself
-		new BlockType({
-			name: name,
-			fn: fn,
-			parent: this
-		});
-	},
-	add2: function(name, fn){
-		var block = this.blocks[name];
-
-		// has this block been registered?
-		if (block)
-			this.reAdd(block);
-
-		// nope, make a new one
-		else
-			this.newBlock(name, fn);
+		} else if (block === this.root.nextNodeAncestor()){
+			return block.exec();
+		} else if (block === this.root.node){
+			return block.exec();
+		} else {
+			return false;
+		}
 	},
 	add: function(name, fn){
-		var block;
-
-		if (this.repeating){
-			block = this.blocks[name];
-			if (block === this.root.nextNodeAncestor()){
-				block.repeat();
-			} else if (block === this.root.node){
-				block.dig();
-			}
-		} else if (this.digging){
-			new FirstChildBlock({
-				name: name,
-				fn: fn,
-				parent: this	
-			});
-		} else if (this.scanning){
-			new Block({
+		var block = this.blocks[name];
+		if (block){
+			return this.reAdd(block);
+		} else {
+			return new Block({
 				name: name,
 				fn: fn,
 				parent: this
-			})
-		} else if (this.skipping){
-			return false;
+			}); 
 		}
+	},
+	init_conclude: function(){
+		// by default, change if needed
+		this.conclude = this.finish;
+	},
+	nothing: function(){},
+	registerFirstChild: function(){
+		// this is important
+			// if 0 children, this doesn't run, and default conclude => finish
+			// if 1 child, and does finish, then we call notify, which resets conclude => finish
+			// if 1 child, and does not finish, then we do nothing
+		this.conclude = this.nothing;
+		if (this.v2)
+			this.notify2 = this.init_conclude;
+		else
+			this.notify = this.init_conclude; // or this.resetConclude? 
+	},
+	registerSecondChild: function(secondChild){
+		// default conclude => finish, or, in the case of unfinished first child, then conclude => nothing
+		// either way, we want to make sure conclude => nothing
+		this.conclude = this.nothing;
+
+		// only runs in "scan" mode, on first run...?  registerFirstChild vs reAddFirstChild
+		// we don't know how many children we'll have, but we know we have at least a second
+		// all that matters at this point, is.. first child finished?
+
+		if (this.children[0].finished){
+			if (this.root.nextNode)
+				console.error("shouldn't have a nextNode if first child finished");
+
+			this.root.setNextNode(secondChild);
+			// this.conclude = this.nothing; // already done
+		} else {
+			// leave conclude => nothing
+		}
+	},
+	notify2: function(child){
+		console.group("notify for " + this.name);
+		if (this.children[child.index + 1]){
+			console.log("has nextChild");
+			if (!this.root.nextNode){
+				console.log("no nextNode, set to nextChild");
+				this.root.setNextNode(this.children[child.index + 1]);
+			} else {
+				console.log("already have nextNode");
+			}
+		} else {
+			console.log("no nextChild, .finish()");
+			this.finish("notified");
+		}
+		console.groupEnd();
 	},
 	isRoot: function(){
 		return this === this.root;
 	},
 	openLogGroup: function(){
 		this.logGroupOpen = true;
-		this.$el.addClass("open");
+		debug && this.$el.addClass("open");
 		console.group(this.name);
 	},
 	closeLogGroup: function(){
 		if (this.logGroupOpen){
 			this.logGroupOpen = false;
-			this.$el.removeClass("open").addClass("closed");
+			debug && this.$el.removeClass("open").addClass("closed");
 			console.groupEnd();
+		} else {
+			debugger;
 		}
 	},
 	capture: function(){
@@ -158,199 +216,119 @@ var Block = Base.extend({
 			throw "Burnout!!!"
 		}
 		this.runCount++;
+		this.$count.text(this.runCount);
 	},
 
 	run: function(suppressLog){
-		this.track();
 		this.capture();
-		// run the block fn
 		this.fn();
 		this.restore();
 	},
-	conclude: function(){
-		if (!this.children.length){
-			this.finish();
-		} else {
-			if (this.reactivate){
-				this.reactivate = false;
-				this.activate(this.next);
-			}
-		}
-	},
+
 	addToCleanup: function(){
 		this.root.blocksToClean.push(this);
 	},
-	exec: function(){
-		this.run();
-		// this.findNext();
-		this.conclude();
-	},
-	setNext: function(next){
-		this.next && this.next.$el.removeClass("next");
-		next && next.$el.addClass("next");
-		this.next = next;
-		if (next){
-			this.root.setNode(next);
-		}
-	},
-	activate: function(block){
-		this.active = block;
-		this.active.$el.addClass("active");
-	},
-	deactivate: function(){
-		this.active && this.active.$el.removeClass("active");
-		this.active = false;
-		this.reactivate = true;
-	},
-	advance: function(){
-		var next = this.children[this.next.index + 1];
+	concludeFirstRun: function(){
+		console.group("concludeFirstRun for " + this.name);
 
-		// when a child finishes and advances parent, we need to clear the active block, so that the .next block doesn't auto-exec 
-		this.deactivate();
 
-		if (next){
-			this.setNext(next);
-		} else {
-			this.setNext(false);
-
-			// on the 2nd+ pass, if there are no more children, we're finished
-			if (this.runCount > 1)
-				this.finish();
-		}
-	},
-	dig: function(){
-		if (this.root.node)
-			this.root.clearNode();
-
-		this.digging = true;
-		this.$el.addClass("digging");
-
-		this.run();
-
-		this.finishDig();
-	},
-	finishDig: function(){
-		this.digging = false;
-		this.$el.removeClass("digging");
-
-		this.scanning = false;
-		this.$el.removeClass("scanning");
-
-		// if (this.parent.digging){
-		// 	this.parent.digging = false;
-		// 	this.parent.$el.removeClass("digging");
-			
-		// 	this.parent.scanning = true;
-		// 	this.parent.$el.addClass("scanning");
-		// }
-
+		// false.  on repeat, we can still "dig", and conclude a child's first run, when the parent is in 2nd+ run.  these logs CAN and DO trigger notify actions...
 		if (!this.children.length){
-			this.finish();
+			this.finish("empty");
+			console.log("empty");
 		} else if (this.children.length === 1){
-			if (this.children[0].finished)
-				this.finish();
-		} else if (this.children[1]){
-			this.root.setNode(this.children[1]);
-			this.parent.skip && this.parent.skip();
-		}
-	},
-	skip: function(){
-		if (this.digging){
-
-			this.digging = false;
-			this.$el.removeClass("digging");
-
-			this.scanning = true;
-			this.$el.addClass("scanning");
-
-		} else if (this.repeating){
-			this.repeating = false;
-			this.$el.removeClass("repeating");
-
-			this.skipping = true;
-			this.$el.addClass("skipping");
-		}
-	},
-	// child notifies parent when child is finished
-	notify: function(child){
-		if (this.digging){
-
-			this.digging = false;
-			this.$el.removeClass("digging");
-
-			this.scanning = true;
-			this.$el.addClass("scanning");
-
-		} else if (this.repeating){
-			this.repeating = false;
-			this.$el.removeClass("repeating");
-
-			this.skipping = true;
-			this.$el.addClass("skipping");
-
-			// this means the parent is repeating, and has already scanned.. and might have remaining children..
-			if (this.children[child.index + 1]){
-				this.root.setNode(this.children[child.index + 1]);
+			if (this.children[0].finished){
+				this.finish("1.finished");
+				console.log("1.finished");
 			} else {
-				this.finish();
+				console.warn("1.unfinished");
+			}
+		} else if (this.children[1]){
+			console.log("has 2nd child");
+			if (!this.root.nextNode){
+				console.log("no nextNode, setNextNode(2ndChild)");
+				this.root.setNextNode(this.children[1]);
+			} else {
+				if (this.children[0].finished)
+					console.error("if we have nextNode, that should mean first child didn't finish");
+				console.warn("already have nextNode, do nothing");
 			}
 		}
+		console.groupEnd();
 	},
-	finish: function(){
-		this.finished = true;
 
-		if (this.root.node === this)
-			this.root.clearNode();
-		
-		this.parent.notify(this);
+	// child notifies parent when child is finished
+	notify: function(child){
+		if (this.runCount > 1){
+			console.group("notify for " + this.name);
+			if (this.children[child.index + 1]){
+				console.log("has nextChild");
+				if (!this.root.nextNode){
+					console.log("no nextNode, set to nextChild");
+					this.root.setNextNode(this.children[child.index + 1]);
+				} else {
+					console.log("already have nextNode");
+				}
+			} else {
+				console.log("no nextChild, .finish()");
+				this.finish("notified");
+			}
+			console.groupEnd();
+		}
+	},
+	finish: function(reason){
+
+		this.finished = true;
+		debug && this.$el.addClass("finished");
+		debug && this.$tag_finished.append(" - " + reason);
 		
 		this.addToCleanup();
 		
-		this.skipping = this.digging = this.repeating = this.scanning = false;
-		this.$el.removeClass("digging repeating skipping scanning");
-		this.$el.addClass("finished");
+		if (this.v2){
+			this.parent.notify2(this);
+		} else {
+			this.parent.notify(this);
+		}
+		
 	},
-	repeat: function(){
+	prep: function(){
+		this.track();
+		this.advanceAncestor();
+		this.openFirstChildGroup();
+	},
+	openFirstChildGroup: function(){
+		// if first run of first child
+		if (this.index === 0 && this.runCount === 1){
+			this.openLogGroup();
+		}
+	},
+	advanceAncestor: function(){
 		if (this === this.root.nextNodeAncestor()){
 			this.root.nodeAncestors.pop();
 		}
-		this.repeating = true;
-		this.$el.addClass("repeating");
-
-		this.skipping = false;
-		this.$el.removeClass("skipping");
-
+	},
+	exec: function(){
+		this.prep();
 		this.run();
-		this.finishRepeat();
+		this.conclude();
 	},
-	finishRepeat: function(){
-		
-	}
-});
-
-var FirstChildBlock = Block.extend({
-	name: "FirstChildBlock",
-	first: true,
-	init: function(){
-		// access to the base prototype is dangerous
-		this.constructor.base.prototype.init.call(this);
-
-		// always auto exec first child
-		this.dig();
-	},
-	run: function(){
-		this.track();
-		this.capture();
-
-		if (!this.repeating)
-			this.openLogGroup();
-		this.fn();
-		this.restore();
+	conclude: function(){
+		if (this.runCount === 1){
+			this.concludeFirstRun();
+		}
 	}
 });
 
 var RootBlock = Block.extend({
 	name: "RootBlock",
+	init: function(){
+		this.constructor.base.prototype.init.call(this);
+		// this.parent.rootBlocks.push(this);
+		this.setNode(this);
+		this.exec();
+		this.done();
+	},
+	init_firstChild: function(){},
 	init_root: function(){
 		this.root = this;
 	},
@@ -358,70 +336,62 @@ var RootBlock = Block.extend({
 		this.constructor.base.prototype.init_props.call(this);
 		this.blocksToClean = [];
 	},
-	init_register: function(){},
 	nextNodeAncestor: function(){
 		return this.nodeAncestors[this.nodeAncestors.length - 1];
-	},
-	run: function(){
-		this.track();
-
-		// should we open Root log group from the globalBlock / Block Manager?
-		if (this.runCount === 1){
-			this.openLogGroup();
-		}
-
-		if (this.node){
-			this.node.openLogGroup();
-		}
-		
-		this.capture();
-		this.fn();
-		this.restore();
 	},
 	cleanup: function(){
 		for (var i = 0; i < this.blocksToClean.length; i++){
 			this.blocksToClean[i].closeLogGroup();
+			// console.log("closing " + this.blocksToClean[i].name);
 		}
 		this.blocksToClean = [];
 	},
-	exec: function(){
-		this.run();
-		this.cleanup();
-		this.conclude();
+	prep: function(){
+		this.track();
+		this.advanceAncestor();
+
+		this.node.openLogGroup();
 	},
-	execRoot: function(){
-		this.dig();
-		this.cleanup();
+	exec: function(){
+		this.prep();
+		debugger;
+		this.run();
 		this.conclude();
+		this.cleanup();
+		this.done();
 	},
 	setNode: function(node){
-		if (!this.node){
-			node.$el.addClass("node");
-			this.node = node;
-			this.findNodeAncestors();
-		}
+		this.clearNode();
+		debug && node.$el.addClass("node");
+		this.node = node;
+	},
+	setNextNode: function(nextNode){
+		// if (!this.nextNode){
+			debug && nextNode.$el.addClass("nextNode");
+			this.nextNode = nextNode;
+		// }
 	},
 	clearNode: function(){
-		this.node && this.node.$el && this.node.$el.removeClass("node");
+		debug && this.node && this.node.$el && this.node.$el.removeClass("node");
 		this.node = false;
 		this.nodeAncestors = [];
 	},
-	conclude: function(){
-		if (this.node){
-			this.repeat();
+	clearNextNode: function(){
+		debug && this.nextNode && this.nextNode.$el && this.nextNode.$el.removeClass("nextNode");
+		this.nextNode = false;
+	},
+	done: function(){
+		if (this.nextNode){
+			this.setNode(this.nextNode);
+			this.findNodeAncestors();
+			this.clearNextNode();
+			this.exec();
 		} else {
 			// this.finish();
+			// finished vs complete vs ...?
 			this.finished = true;
-			this.closeLogGroup();
+			// this.closeLogGroup();
 		}
-	},
-	finishRepeat: function(){
-		this.cleanup();
-		this.conclude();
-	},
-	execNode: function(){
-		this.findNodeAncestors();
-		this.repeat();
 	},
 	findNodeAncestors: function(){
 		var parent = this.node.parent;
@@ -431,27 +401,6 @@ var RootBlock = Block.extend({
 			parent = parent.parent;
 		}
 	}
-});
-
-
-current = new Base({
-	name: "global",
-	init: function(){
-		this.rootBlocks = [];
-		this.$el = $("<div></div>");
-	},
-	add: function(name, fn){
-		var block = new RootBlock({
-			name: name,
-			fn: fn,
-			parent: this
-		});
-
-		this.rootBlocks.push(block);
-
-		block.execRoot();
-	},
-	notify: function(){}
 });
 
 var test = exports.test = function(){

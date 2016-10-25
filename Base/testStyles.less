@@ -1,4 +1,4 @@
-body {background: #333;padding-top: 20px;}
+body {background: #333;padding-top: 20px; overflow: scroll; }
 .block {
 	background: #fff;
 	margin-bottom: 5px;
@@ -30,7 +30,7 @@ body {background: #333;padding-top: 20px;}
 		background: black;
 	}
 	& > .tags > .tag.finished {
-		display: block;
+		display: inline-block;
 		background: black;
 	}
 }
@@ -48,6 +48,11 @@ body {background: #333;padding-top: 20px;}
 .digging > .tags > .digging.tag {
 	display: inline-block;
 	background: brown;
+}
+
+.nextNode > .tags > .nextNode {
+	display: inline-block;
+	background: purple;
 }
 
 .scanning > .tags > .tag.scanning {

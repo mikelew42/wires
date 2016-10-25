@@ -28,20 +28,20 @@ var next = function(){
 
 $(function(){
 	// debugger;
-	test("root", function(){
-		console.log("root.start");
+	test("Root", function(){
+		console.log("Root.setup");
 		console.assert(next() === 1);
 
 		test("A", function(){
-			console.log("A.start");
+			console.log("A");
 			console.assert(next() === 2);
 		});
 
-		console.log("root.A/B");
+		// console.log("root.A/B");
 		console.assert(next() === 3);
 
 		test("B", function(){
-			console.log("B.start");
+			console.log("B.setup");
 			console.assert(next() == 6);
 
 			test("B1", function(){
@@ -49,7 +49,7 @@ $(function(){
 				console.assert(next() === 7);
 			});
 
-			console.log("B.B1/B2");
+			// console.log("B.B1/B2");
 			console.assert(next() === 8);
 
 			test("B2", function(){
@@ -57,27 +57,27 @@ $(function(){
 				console.assert(next() === 11);
 			});
 
-			console.log("B.B2/B3");
+			// console.log("B.B2/B3");
 			console.assert(next() === 9);
 
 			test("B3", function(){
-				console.log("inside B3");
+				console.log("B3");
 				console.assert(next() === 12);
 			});
 
-			console.log("B.end");
+			console.log("B.cleanup");
 			console.assert(next() === 10);
 		});
 	 
-		console.log("root.B/C");
+		// console.log("root.B/C");
 		console.assert(next() === 4);
 
 		test("C", function(){
-			console.log("C.start");
+			console.log("C.setup");
 			console.assert(next() === 13);
 
 			test("C1", function(){
-				console.log("C1.start");
+				console.log("C1.setup");
 				console.assert(next() === 14);
 
 				test("C1a", function(){
@@ -85,7 +85,7 @@ $(function(){
 					console.assert(next() === 15);
 				});
 
-				console.log("C1.C1a/C1b");
+				// console.log("C1.C1a/C1b");
 				console.assert(next() === 16);
 
 				test("C1b", function(){
@@ -93,7 +93,7 @@ $(function(){
 					console.assert(next() === 21);
 				});
 
-				console.log("C1.C1b/C1c");
+				// console.log("C1.C1b/C1c");
 				console.assert(next() === 17);
 
 				test("C1c", function(){
@@ -101,15 +101,15 @@ $(function(){
 					console.assert(next() === 22);
 				});
 
-				console.log("C1.end");
+				console.log("C1.cleanup");
 				console.assert(next() === 18);
 			});
 
-			console.log("C.C1/C2");
+			// console.log("C.C1/C2");
 			console.assert(next() === 19);
 
 			test("C2", function(){
-				console.log("C2.start");
+				console.log("C2.setup");
 				console.assert(next() === 23);
 
 				test("C2a", function(){
@@ -117,7 +117,7 @@ $(function(){
 					console.assert(next() === 24);
 				});
 
-				console.log("C2.C2a/C2b");
+				// console.log("C2.C2a/C2b");
 				console.assert(next() === 25);
 
 				test("C2b", function(){
@@ -125,15 +125,52 @@ $(function(){
 					console.assert(next() === 27);
 				});
 
-				console.log("C2.end");
+				console.log("C2.cleanup");
 				console.assert(next() === 26);
 			});
 
-			console.log("C.end");
+			console.log("C.cleanup");
 			console.assert(next() === 20);
 		});
 
-		console.log("root.end");
+		// test("E", function(){});
+
+		console.log("Root.cleanup");
 		console.assert(next() === 5);
-	});	
+	});
+
+	test("Root2", function(){
+		// that's it
+	});
+
+	test("Root3", function(){
+		test("A", function(){
+			test("A1", function(){
+				test("A1a", function(){});
+				test("A1b", function(){});
+			});
+		});
+	});
+
+	test("D", function(){
+		test("D1", function(){
+			test("D1a", function(){
+				test("D1a1", function(){
+					test("D1a1a", function(){});
+					test("D1a1b", function(){});
+					test("D1a1c", function(){});
+				});
+			});
+		});
+		test("D2", function(){
+			test("D2a", function(){
+				test("D2a1", function(){
+					test("D2a1a", function(){});
+				});
+			});
+			test("D2b", function(){});
+			test("D2c", function(){});
+		});
+		test("D3", function(){});
+	});
 });
