@@ -1,5 +1,7 @@
 var is = require("../is");
 var Base = require("./Base");
+var router = require("../router");
+var hash = require("../utils/utils").sanitizeString;
 
 var $ = require("jquery");
 
@@ -15,8 +17,12 @@ $(function(){
 
 	// create this on doc.ready, so we can render it
 	current = new Block({
-		name: "Test Framework",
+		name: router.activeRoute.pathname,
 		global: true,
+		init_route: function(){ return true; },
+		init_url: function(){
+			this.url = this.name
+		},
 		init_root: function(){},
 		init_register: function(){},
 		add: function(name, fn){
@@ -40,11 +46,51 @@ var Block = Base.extend({
 	init: function(){
 		this.init_props();
 		this.init_root();
+
+		// init url after init root
+		this.init_url();
+
+		if (!this.init_route())
+			return false;
+
 		// render before register
 		debug && this.render();
 		this.init_register();
 
 		this.init_firstChild();
+	},
+	init_url: function(){
+		this.hash = hash(this.name);
+		var filePath = router.activeRoute.pathname;
+		this.url = filePath;
+		var parent = this.parent;
+		var parentHashes = [];
+		while(parent !== this.root){
+			parentHashes.unshift(parent.hash);
+			parent = parent.parent;
+		}
+		parentHashes.unshift(this.root.hash);
+
+		for (var i = 0; i < parentHashes.length; i++){
+			this.url += parentHashes[i] + "/";
+		}
+
+		this.url += this.hash + "/";
+	},
+	init_route: function(){
+		var filePath = router.activeRoute.pathname;
+
+		if (this.url.indexOf(window.location.pathname) === -1
+			&& window.location.pathname.indexOf(this.url) === -1){
+			
+			return false;
+		}
+
+		if (this.url === window.location.pathname){
+			this.chosen = true;
+		}
+
+		return true;
 	},
 	init_firstChild: function(){
 		if (this.index === 0){
@@ -69,11 +115,14 @@ var Block = Base.extend({
 	},
 	render: function(){
 		this.$el = $("<div>").addClass("block");
-		this.$name = $("<div>").addClass("name").text(this.name + " - ").appendTo(this.$el);
+		this.$name = $("<a>").addClass("name").attr("href", this.url).text(this.name + " - ").appendTo(this.$el);
 		this.$count = $("<span></span>").text(this.runCount).appendTo(this.$name);
 		this.$icon = $("<div></div>").addClass("icon").prependTo(this.$el);
 
 		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
+
+		if (this.chosen)
+			this.$el.addClass("chosen");
 
 		var tags = [
 			"finished", "node", "nextNode"
@@ -242,9 +291,17 @@ var RootBlock = Block.extend({
 	init: function(){
 		this.constructor.base.prototype.init.call(this);
 		// this.parent.rootBlocks.push(this);
+
+		if (!this.init_route())
+			return false;
 		this.setNode(this);
 		this.exec();
 		this.done();
+	},
+	init_url: function(){
+		this.hash = hash(this.name);
+		var filePath = router.activeRoute.pathname;
+		this.url = filePath + this.hash + "/";
 	},
 	init_firstChild: function(){},
 	init_root: function(){
@@ -319,6 +376,19 @@ var RootBlock = Block.extend({
 		}
 	}
 });
+
+var expect = exports.expect = function(a){
+	return {
+		toBe: function(b){
+			console.assert(a === b, a, "===", b);
+		},
+		not: {
+			toBe: function(b){
+				console.assert(a !== b, a, "!==", b);
+			}
+		}
+	}
+};
 
 var test = exports.test = function(){
 	return current.add.apply(current, arguments);

@@ -1,54 +1,155 @@
-var Test = require("./Test");
-var expect = Test.expect;
-var Base = require("./Base");
+var TestFramework = require("./TestFramework");
+var expect = TestFramework.expect;
+var test = TestFramework.test;
+var Base2 = require("./Base2");
 var is = require("../is");
+var $ = require("jquery");
+var assert = console.assert.bind(console);
 
-// expect(is.fn(Base.extend)).toBe(true); // unncessary.. this problem will reveal itself...
+$(function(){
 
-console.groupCollapsed("Base2.tests.js");
-var Test1 = Test.extend({
-	name: "Test1",
-	setup: function(){ // usage
-		this.base = new Base();
-	}
-});
+test("Base2", function(){
 
-new Test1({
-	name: "Test1_1",
-	test: function(){
-		expect(this.base instanceof Base).toBe(true);
-		expect(this.base.constructor).toBe(Base);
-	}
-});
-
-new Test1({
-	name: "Test1_2",
-	test: function(){
-		this.base.assign({
-			prop: 123
-		});
-		expect(this.base.prop)
-		expect(is.fn())
-	}
-});
-console.groupEnd();
-
-/*
-describe("Something", function(){
-	var base;
-
-	setup(function(){
-		base = new Base();
+	test("standard methods", function(){
+		assert(is.fn(Base2.assign));
+		assert(is.fn(Base2.extend));
+		assert(is.fn(Base2.isExtensionOf));
+		assert(is.fn(Base2.prototype.assign));
+		assert(is.fn(Base2.prototype.create));
+		assert(is.fn(Base2.prototype.init));
 	});
 
-	// if this fn runs for each "it" block contained within, it will automatically reset the entire state.
+	test("clean instance", function(){
+		var base = new Base2();
+		// console.log(base.id);
+		// and test w/o "new"?
 
-	// if you wanted something to persist, you could set it up outside the fn
 
-	// but maybe that's the point - you want all vars to be contained, so you don't have to worry about naming?
+		test("instanceof and .constructor", function(){
+			assert(base instanceof Base2);
+			assert(base.constructor === Base2);
+		});
 
-	// then you'd have to use a "reset" function:
+		test("track", function(){
+			assert(is.num(base.id));
+			assert(is.num(Base2.id));
+			assert(is.num(Base2.prototype.id));
+			assert(base.id !== Base2.prototype.id);
+			assert(Base2.id !== Base2.prototype.id);
+		});
 
+		test("assign", function(){
+			test("single assign", function(){
+				base.assign({
+					prop: 123
+				});
+
+				assert(base.prop === 123);
+			});
+
+			test("multiple assigns", function(){
+				base.assign({
+					prop: 1
+				}, {
+					prop: 2,
+					another: 3
+				}, {
+					prop: 4,
+					another: 5,
+					third: 6
+				});
+
+				assert(base.prop === 4);
+				assert(base.another == 5);
+				assert(base.third === 6);
+			});
+		});
+	});
+
+	test("create, assign, init", function(){
+		var check = {}, 
+			base = Base2({
+				prop: 5,
+				init: function(){
+					check.init = true;
+				}
+			});
+
+		assert(base.prop === 5);
+		assert(check.init);
+	});
+
+	// ExtendModFn
+	test("extend", function(){
+
+		test("clean extend", function(){
+			var Base3 = Base2.extend();
+
+			test("isExtensionOf", function(){
+				assert(Base3.isExtensionOf(Base2));
+			});
+
+			test(".base", function(){
+				assert(Base3.base === Base2);
+			});
+
+			test("standard methods", function(){
+				assert(is.fn(Base3.assign));
+				assert(is.fn(Base3.extend));
+				assert(is.fn(Base3.isExtensionOf));
+				assert(is.fn(Base3.prototype.assign));
+				assert(is.fn(Base3.prototype.create));
+				assert(is.fn(Base3.prototype.init));
+			});
+
+			test("instance", function(){
+				var base = new Base3();
+
+				assert(base instanceof Base3);
+				assert(base instanceof Base2);
+				assert(base.constructor === Base3);
+	
+				test("track", function(){
+					assert(is.num(base.id));
+					assert(is.num(Base3.id));
+					assert(is.num(Base3.prototype.id));
+					assert(base.id !== Base3.prototype.id);
+					assert(Base3.id !== Base3.prototype.id);
+				});
+			});
+		});
+
+		test("with name", function(){
+			var Base3 = Base2.extend({
+				name: "Base3"
+			});
+
+			assert(Base3.name === "Base3");
+			assert(Base2.name !== "Base3");
+		});
+
+		test("with props", function(){
+			var check = {};
+			var Base3 = Base2.extend({
+				name: "Base3",
+				prop: 123,
+				init: function(){
+					check.init = true;
+				}
+			}, {
+				prop: 456
+			});
+
+
+			assert(!check.init);
+			assert(Base3.prototype.prop === 456);
+
+			var base = new Base3();
+			assert(check.init);
+
+
+		});
+	});
+});
 
 });
-*/

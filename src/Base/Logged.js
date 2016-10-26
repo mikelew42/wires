@@ -1,4 +1,4 @@
-console.groupCollapsed("Logged.js");
+// console.groupCollapsed("Logged.js");
 
 var Filterable = require("./Filterable");
 var Module = require("./Module");
@@ -208,4 +208,4 @@ var Logged = Module.extend({
 
 module.exports = Logged;
 
-console.groupEnd();
+// console.groupEnd();

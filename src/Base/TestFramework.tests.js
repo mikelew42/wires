@@ -2,14 +2,7 @@ var TestFramework = require("./TestFramework");
 var test = TestFramework.test;
 var $ = require("jquery");
 var ValidationTest = require("./ValidationTest");
-
-expect = function(a){
-	return {
-		toBe: function(b){
-			console.assert(a === b, a, "===", b);
-		}
-	}
-};
+var expect = TestFramework.expect;
 
 var index = 0, IDs = [
 	1, 2, 3, 4, 5, // A

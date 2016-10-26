@@ -17,6 +17,9 @@ var Route = module.exports = Base.extend({
 			route: this
 		});
 	},
+	deactivate: function(){
+		this.active = false;
+	},
 	activate: function(){
 		// this.log && console.group("Route.activate");
 		if (window.location.pathname !== this.pathname){
@@ -29,9 +32,12 @@ var Route = module.exports = Base.extend({
 	},
 	changeURL: function(){
 		// this.log && console.log('Route.changeURL');
-		this.router.activateRoute(this);
+		this.router.pushRoute(this);
 	},
 	runCBs: function(){
+		this.router.deactivateAll();
+		this.router.activeRoute = this;
+		this.active = true;
 		// this.log && console.log("Route.runCBs");
 		for (var i = 0; i < this.cbs.length; i++){
 			this.cbs[i].call(this);

@@ -4,14 +4,15 @@ var track = require("./track");
 
 
 var Extend = module.exports = ModFn.extend({
+	// first arg is ctx, and can be stripped with this.args(arguments);
 	main: function(Base, o){
-		var Ext = this.createConstructor(this.name(o, Base));
+		var Ext = this.createConstructor(this.getName(o, Base));
 		this.setupConstructor(Ext, Base);
 		this.createPrototype(Ext, Base);
 		this.setupPrototype(Ext, Base, this.args(arguments));
 		return Ext;
 	},
-	name: function(o, Base){
+	getName: function(o, Base){
 		return (o && o.name) || (Base.name + "Ext");
 	},
 	createConstructor: function(name){

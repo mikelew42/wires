@@ -12,36 +12,37 @@ Instead of doing dynamic path matching, I could just add all routes...
 
 // var TestRoute = Route.extend({});
 
-var requireAll2 = function(context) {
-	var keys = context.keys(), key;
-	console.log(keys);
-	for (var i = 0; i < keys.length; i++){
-		console.group(keys[i]);
-		key = keys[i];
-		key = key.replace("./", "").replace(".tests.js", "");
-		var paths = key.split("/"), path;
-		for (var j = 0; j < paths.length; j++){
-			path = paths[j];
-			var pathname = path;
-			for (var k = 0; k < j; k++){
-				pathname = paths[k] + "/" + pathname;
-			}
-			console.log(pathname);
-			router.addRoutes(new Route({
-				pathname: "test/" + pathname,
-				label: pathname,
-				key: keys[i],
-				allowDefault: true
-			}).then(function(){
-				// console.clear();
-				context(this.key);
-			}));
-		}
-		// context(keys[i]);
-		console.groupEnd();
-	}
-	// keys.forEach(context); 
-};
+// var requireAll2 = function(context) {
+// 	var keys = context.keys(), key;
+// 	console.log(keys);
+// 	for (var i = 0; i < keys.length; i++){
+// 		console.group(keys[i]);
+// 		key = keys[i];
+// 		key = key.replace("./", "").replace(".tests.js", "");
+// 		var paths = key.split("/"), path;
+// 		for (var j = 0; j < paths.length; j++){
+// 			path = paths[j];
+// 			var pathname = path;
+// 			for (var k = 0; k < j; k++){
+// 				pathname = paths[k] + "/" + pathname;
+// 			}
+// 			console.log(pathname);
+// 			router.addRoutes(new Route({
+// 				pathname: "test/" + pathname,
+// 				label: pathname,
+// 				key: keys[i],
+// 				allowDefault: true,
+// 				matchBeginning: true
+// 			}).then(function(){
+// 				// console.clear();
+// 				context(this.key);
+// 			}));
+// 		}
+// 		// context(keys[i]);
+// 		console.groupEnd();
+// 	}
+// 	// keys.forEach(context); 
+// };
 
 var requireAll = function(context) {
 	var keys = context.keys(), key;
@@ -52,7 +53,8 @@ var requireAll = function(context) {
 			pathname: "test/" + key,
 			label: key,
 			key: keys[i],
-			allowDefault: true
+			allowDefault: true,
+			matchBeginning: true
 		}).then(function(){
 			// console.clear();
 			context(this.key);

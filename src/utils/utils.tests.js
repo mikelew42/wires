@@ -7,6 +7,7 @@ var hashCode = utils.hashCode;
 var numToChar = utils.numToChar;
 var stringToCrazyNumber = utils.stringToCrazyNumber;
 var hash = utils.hash;
+var sanitize = utils.sanitizeString;
 
 var expect = function(value){
 	console.assert(value);
@@ -29,5 +30,9 @@ $(function(){
 
 	test("h", function(){
 		console.log(hash("wtf"));
-	})
+	});
+
+	test("sanitizeString", function(){
+		sanitize("hello - world?");
+	});
 });

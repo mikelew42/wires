@@ -64,5 +64,23 @@ var utils = module.exports = {
 			   utils.numToChar(code[2] + "" + code[13]) +
 			   utils.numToChar(code[3] + "" + code[12]) +
 			   utils.numToChar(code[4] + "" + code[11]);
+	},
+	sanitizeString: function(str){
+		// remove anything but A-Z, a-z, 0-9, and maybe the dash: 45
+		var result = "", char, code;
+		for (var i = 0; i < str.length; i++){
+			char = str[i];
+			code = char.charCodeAt();
+			if (code === 45){
+				result += char;
+			} else if (code >= 48 && code <= 57){
+				result += char;
+			} else if (code >= 65 && code <= 90){
+				result += char;
+			} else if (code >= 97 && code <= 122){
+				result += char;
+			}
+		}
+		return result;
 	}
 };

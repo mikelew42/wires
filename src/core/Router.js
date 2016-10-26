@@ -24,15 +24,35 @@ var Router = module.exports = Base.extend({
 	},
 	matchCurrentRoute: function(){
 		// this.log && console.group("matching route ...");
+		var matches = [], match;
 		if (!this.matched){
 			this.each(function(route){
-				if (route.pathname === window.location.pathname){
+				if (route.matchBeginning){
+					if (window.location.pathname.indexOf(route.pathname) === 0){
+						matches.push(route);
+					}
+				} else if (route.pathname === window.location.pathname){
 					// this.log && console.group('matched', route.pathname);
 					route.runCBs();
 					this.matched = true;
 					// this.log && console.groupEnd();
 				}
 			});
+
+			if (this.matched)
+				return false; // keep an exact match if found
+
+			// otherwise, use the longest path match
+			else if (matches.length){
+				match = matches[0];
+				for (var i = 1; i < matches.length; i++){
+					if (matches[i].length > match.length)
+						match = matches[i];
+				}
+				match.runCBs();
+				this.matched = true;
+			}
+
 			
 		}
 		// this.log && console.groupEnd();
@@ -49,7 +69,12 @@ var Router = module.exports = Base.extend({
 		this.routes.push(route);
 		return this;
 	},
-	activateRoute: function(route){
+	deactivateAll: function(){
+		for (var i = 0; i < this.routes.length; i++){
+			this.routes[i].deactivate();
+		}
+	},
+	pushRoute: function(route){
 		this.history.push(route.pathname);
 		return this;
 	}

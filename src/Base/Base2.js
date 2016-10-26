@@ -2,10 +2,12 @@ var createConstructor = require("./createConstructor");
 var Extend = require("./ExtendModFn");
 var create = require("./create");
 var isExtensionOf = require("./isExtensionOf");
+var track = require("./track");
 
-
-// Base constructor
 var Base = createConstructor("Base");
+
+track(Base);
+track(Base.prototype);
 
 Base.assign({
 	extend: new Extend().fn,
