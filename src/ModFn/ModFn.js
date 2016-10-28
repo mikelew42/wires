@@ -1,6 +1,6 @@
 var is = require("../is");
-var Base = require("./Base");
-var argsToArray = require("./argsToArray");
+var Base = require("../Base");
+var argsToArray = require("../Base/argsToArray");
 
 var ModFn = Base.extend({
 	init: function(){

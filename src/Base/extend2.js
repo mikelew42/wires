@@ -1,8 +1,8 @@
 var createConstructor = require("./createConstructor");
-var createEventedConstructor = require("./createEventedConstructor");
+var createEventedConstructor = require("../Evented/createEventedConstructor");
 var EventEmitter = require("events");
 var is = require("../is");
-var track = require("./track");
+var track = require("../track/track");
 var extend = module.exports = {
 	main: function(o){
 		var Ext = extend.createConstructor(extend.name(o, this));
@@ -20,17 +20,17 @@ var extend = module.exports = {
 	},
 	subbable: function(o){
 		var Ext = extend.createEventedConstructor(extend.name(o, this));
-		console.groupCollapsed(Ext.name + " extends " + this.name + " (extend2.subbable)");
+		// console.groupCollapsed(Ext.name + " extends " + this.name + " (extend2.subbable)");
 		// console.trace();
 		extend.setupSubbableConstructor(Ext, this, o);
 
-		console.log("createPrototype, and relink a few props");
+		// console.log("createPrototype, and relink a few props");
 		extend.createPrototype(Ext, this);
 
 
 		extend.setupSubbablePrototype(Ext, this, arguments);
 		Ext.events.emit("extended", Ext, this);
-		console.groupEnd();
+		// console.groupEnd();
 		return Ext;
 	},
 	name: function(o, Base){
@@ -49,18 +49,18 @@ var extend = module.exports = {
 		Ext.base = Base;
 	},
 	setupSubbableConstructor: function(Ext, Base, o){
-		console.group("extend2.setupSubbableConstructor");
+		// console.group("extend2.setupSubbableConstructor");
 
-		console.log(".handleClassProps(), copies some Base[props] to Ext[props]");
+		// console.log(".handleClassProps(), copies some Base[props] to Ext[props]");
 		extend.handleClassProps(Ext, Base);
 
-		console.log("Ext.events = new EventEmitter();");
+		// console.log("Ext.events = new EventEmitter();");
 		Ext.events = new EventEmitter();
-		console.log("Ext.base = Base");
+		// console.log("Ext.base = Base");
 		Ext.base = Base;
 		
 
-		console.group("config: pluck and call")
+		// console.group("config: pluck and call")
 
 		// must be after the above .handleClassSubs call
 		if (o && o.config){
@@ -69,9 +69,9 @@ var extend = module.exports = {
 		} // must also be before the .events EE is created below
 
 		Ext.config && Ext.config();
-		console.groupEnd();
+		// console.groupEnd();
 
-		console.groupEnd();
+		// console.groupEnd();
 	},
 	createPrototype: function(Ext, Base){
 		Ext.prototype = Object.create(Base.prototype);
@@ -83,18 +83,18 @@ var extend = module.exports = {
 		Ext.prototype.assign.apply(Ext.prototype, args);
 	},
 	setupSubbablePrototype: function(Ext, Base, args){
-		console.group(".setupSubbablePrototype");
+		// console.group(".setupSubbablePrototype");
 
-		console.log("Ext.events.emit('setupPrototype')");
+		// console.log("Ext.events.emit('setupPrototype')");
 		Ext.events.emit("setupPrototype", Ext, Base, args);
 
-		console.log(".recursiveExtend()");
+		// console.log(".recursiveExtend()");
 		extend.recursiveExtend(Ext, args);
 		// Ext.prototype.assign.apply(Ext.prototype, args);
 		
-		console.log(".elevateProtoClasses");
+		// console.log(".elevateProtoClasses");
 		extend.elevateProtoClasses(Ext);
-		console.groupEnd();
+		// console.groupEnd();
 	},
 	// this is basically just the eventedAssign function
 	recursiveExtend: function(Ext, args){
@@ -107,7 +107,9 @@ var extend = module.exports = {
 				propValue = arg[propName];
 				// if the prototype[prop] is a Sub class, and the incoming property is an object, then pass that obj to extend, and replace the prototype[prop] with the new class
 				if (is.fn(Ext.prototype[propName]) && Ext.prototype[propName].extend && is.obj(propValue) ){
-					console.log("recursiveExtending");
+					// console.log("recursiveExtending");
+					if (!propValue.name)
+						propValue.name = Ext.prototype[propName].name;
 					Ext.prototype[propName] = 
 						Ext.prototype.applyFilter("assign", Ext.prototype.applyFilter("recursiveExtend", Ext.prototype[propName].extend(propValue), propName), propName);
 				} else {
@@ -137,7 +139,7 @@ var extend = module.exports = {
 		}
 	},
 	handleClassProps: function(Ext, Base){
-		for (var i in Base){
+		for (var i in Base){ // Constructor shouldn't have .constructor prop..?
 			if (i === "base" || i === "events" || i === "constructor" || i === "id")
 				continue;
 			if (is.fn(Base[i]) && Base[i].extend)

@@ -1,7 +1,7 @@
 var createConstructor = require("./createConstructor");
 var extend = require("./extend");
 var create = require("./create");
-var track = require("./track");
+var track = require("../track/track");
 var isExtensionOf = require("./isExtensionOf");
 
 

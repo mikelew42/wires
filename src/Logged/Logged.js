@@ -1,14 +1,10 @@
-// console.groupCollapsed("Logged.js");
-
-var Filterable = require("./Filterable");
-var Module = require("./Module");
-var eventedAssign = require("./eventedAssign.js");
+var Filterable = require("../Filterable/Filterable");
+var Module = require("../Module/Module");
 var Logger = require("../log/Logger");
 var is = require("../is");
-var track = require("./track");
-var createConstructor = require("./createEventedConstructor");
+var track = require("../track/track");
 var events = require("events");
-var extend2 = require("./extend2");
+var extend2 = require("../Base/extend2");
 
 var _log, log = _log = Logger({
 	
@@ -19,7 +15,7 @@ var create = function(o){
 	initMethodAutoWrapper.call(this);
 	this.assign.apply(this, arguments);
 	this.init && this.init();
-	console.groupEnd();
+	// console.groupEnd();
 };
 
 var initMethodAutoWrapper = function(){
@@ -102,13 +98,12 @@ var reWrapMethods = function(prototype){
 var Logged = Module.extend({
 	name: "Logged",
 	create: create,
-	assign: eventedAssign,
 	// .config gets plucked and put onto the Class directly...
 	config: function(){
-		console.group(this.name + ".config");
+		// console.group(this.name + ".config");
 		// this === Logged
 		this.events.on("extended", function(Ext){
-			console.groupCollapsed("Logged.events on extended");
+			// console.groupCollapsed("Logged.events on extended");
 			
 			if (!Ext.prototype.hasOwnProperty("log"))
 				Ext.log = Ext.prototype.log = new Ext.prototype.Logger();
@@ -116,11 +111,11 @@ var Logged = Module.extend({
 			// after all changes to .methods{}, we need to apply these effects
 			reWrapMethods(Ext.prototype);
 
-			console.groupEnd();
+			// console.groupEnd();
 		});
 
 		this.events.on("setupPrototype", function(Ext, Base, args){
-			console.groupCollapsed("Logged.events on setupPrototype");
+			// console.groupCollapsed("Logged.events on setupPrototype");
 			// runs right before incoming args are assigned to prototype
 			
 			// enable events
@@ -136,10 +131,10 @@ var Logged = Module.extend({
 			// the elevator:  if Sub classes or .methods{} are assigned, elevate to Class
 			initSubClassElevationFilter.call(Ext.prototype);
 
-			console.groupEnd();
+			// console.groupEnd();
 		});
 
-		console.groupEnd();
+		// console.groupEnd();
 	},
 	Logger: Logger.extend({
 		name: "Loggedr",
@@ -160,52 +155,4 @@ var Logged = Module.extend({
 	})
 });
 
-
-
-// Logged.extend = log.wrapMethod("extend", function(o){
-// 	var name, props, Ext, logArgs;
-
-// 	name = (o && o.name) || (this.name + "Ext");
-	
-// 	Ext = createConstructor(name);
-
-// 	// copy this.props to Ext
-// 	// Ext.assign(this); // should these be wrapped?  come back to this
-
-// 	handleClassSubs(this, Ext);
-
-// 	Ext.prototype = Object.create(this.prototype);
-// 	Ext.prototype.constructor = Ext;
-// 	Ext.base = this;
-// 	Ext.prototype.type = name;
-
-// // this.emit("extended");
-// 	// enable fn wrapping, by enabling events on the prototype
-// 	// this allows us to use the eventedAssign
-// 	// in fact, these 3 lines of code should be a pluggable event...
-// 		// but, we need to keep this .extend override one way or another, b/c we can't add events to the Base class
-// 	events.call(Ext.prototype);
-// 	Ext.prototype._events = {}; // clobber it to prevent any leakage
-	
-// 	initMethodAutoWrapper.call(Ext.prototype);
-
-// 	initLoggedClass.call(Ext);
-// 	if (this.log){
-// 		this.log.log("copying Constructor.log");
-// 		Ext.log = Ext.prototype.log = this.log.copy();
-// 		this.log.log(Ext.log);
-// 	}
-
-
-
-// 	Ext.prototype.assign.apply(Ext.prototype, arguments);
-// 	return Ext;
-// });
-
-// Logged.log.stop();
-// module.exports = Logged.extend();
-// Logged.log.start();
-
 module.exports = Logged;
-
-// console.groupEnd();

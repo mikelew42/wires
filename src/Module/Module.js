@@ -1,5 +1,5 @@
-var Filterable = require("./Filterable");
-var extend2 = require("./extend2");
+var Filterable = require("../Filterable/Filterable");
+var extend2 = require("../Base/extend2");
 
 var _Module = Filterable.extend({
 	name: "_Module"

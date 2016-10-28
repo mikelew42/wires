@@ -19,10 +19,10 @@ var Method = module.exports = Base.extend({
 	},
 
 	shouldLog: function(ctx){
-		if (ctx.log.skip)
+		if (ctx.log.disable)
 			return false;
 
-		return !this.log.skip
+		return !this.log.disable
 	},
 
 	execWrapper: function(ctx, args){

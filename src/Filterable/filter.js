@@ -1,4 +1,4 @@
-var argsToArray = require("./argsToArray");
+var argsToArray = require("../Base/argsToArray");
 
 var filter = exports.filter = function(name, fn){
 	this.on(name, function(filter){

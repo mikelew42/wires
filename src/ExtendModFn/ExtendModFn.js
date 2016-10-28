@@ -1,6 +1,6 @@
-var ModFn = require("./ModFn");
-var createConstructor = require("./createConstructor");
-var track = require("./track");
+var ModFn = require("../ModFn/ModFn");
+var createConstructor = require("../Base/createConstructor");
+var track = require("../track/track");
 
 
 var Extend = module.exports = ModFn.extend({

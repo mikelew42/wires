@@ -1,11 +1,13 @@
 var createConstructor = require("./createEventedConstructor");
-var extend = require("./extend");
-var create = require("./create")
+var extend = require("../Base/extend");
+var create = require("../Base/create");
+var isExtensionOf = require("../Base/isExtensionOf");
 
 var Evented = createConstructor("Evented");
 
 Evented.assign({
-	extend: extend // allows "classical inheritance"
+	extend: extend, // allows "classical inheritance"
+	isExtensionOf: isExtensionOf
 });
 
 Evented.prototype.assign({

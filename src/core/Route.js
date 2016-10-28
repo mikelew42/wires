@@ -7,6 +7,7 @@ var Route = module.exports = Base.extend({
 	label: "Default Route Label",
 	init: function(){
 		this.cbs = [];
+		this.dcbs = [];
 		if (this.pathname[0] !== "/" && !this.relative)
 			this.pathname = "/" + this.pathname;
 		if (this.pathname[this.pathname.length - 1] !== "/")
@@ -18,6 +19,9 @@ var Route = module.exports = Base.extend({
 		});
 	},
 	deactivate: function(){
+		if (this.active){
+			this.runDeactivateCBs();
+		}
 		this.active = false;
 	},
 	activate: function(){
@@ -46,5 +50,14 @@ var Route = module.exports = Base.extend({
 	then: function(cb){
 		this.cbs.push(cb);
 		return this;
+	},
+	andThen: function(cb){
+		this.dcbs.push(cb);
+		return this;
+	},
+	runDeactivateCBs: function(){
+		for (var i = 0; i < this.dcbs.length; i++){
+			this.dcbs[i].call(this);
+		}
 	}
 });

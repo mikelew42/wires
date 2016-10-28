@@ -1,5 +1,5 @@
 var createConstructor = require("./createConstructor");
-var track = require("./track");
+var track = require("../track/track");
 
 var extend = function(o){
 	var name, Ext;

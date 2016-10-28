@@ -1,6 +1,6 @@
 var Base = require("../Base");
 // var Logged = require("../Base/Logged");
-var track = require("../Base/track");
+var track = require("../track/track");
 
 var View = module.exports = Base.extend({
 	name: "View",

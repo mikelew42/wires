@@ -1,4 +1,4 @@
-var TestFramework = require("./TestFramework");
+var TestFramework = require("../test/framework");
 var expect = TestFramework.expect;
 var test = TestFramework.test;
 var Base2 = require("./Base2");

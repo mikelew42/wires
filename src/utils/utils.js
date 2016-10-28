@@ -71,13 +71,14 @@ var utils = module.exports = {
 		for (var i = 0; i < str.length; i++){
 			char = str[i];
 			code = char.charCodeAt();
-			if (code === 45){
+			if (code === 45 || code === 32){ // the dash: -
+				if (result[result.length-1] !== "-")
+					result += "-"; // convert spaces to dashes, also
+			} else if (code >= 48 && code <= 57){ // 0-9
 				result += char;
-			} else if (code >= 48 && code <= 57){
-				result += char;
-			} else if (code >= 65 && code <= 90){
-				result += char;
-			} else if (code >= 97 && code <= 122){
+			} else if (code >= 65 && code <= 90){ // A-Z
+				result += char.toLowerCase();
+			} else if (code >= 97 && code <= 122){ // a-z
 				result += char;
 			}
 		}

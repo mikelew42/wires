@@ -3,6 +3,12 @@ var Route = require("./core/Route");
 var $ = require("jquery");
 
 var router = new Router().addRoutes(
+	new Route({
+		pathname: "/",
+		label: "Home"
+	}).then(function(){
+		console.log("welcome home")
+	})
 	// new Route({
 	// 	pathname: "/leading-slash",
 	// 	label: "Leading Slash"

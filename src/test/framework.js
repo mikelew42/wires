@@ -1,9 +1,11 @@
 var is = require("../is");
-var Base = require("./Base");
+var Base = require("../Base");
+var router = require("../router");
+var hash = require("../utils/utils").sanitizeString;
 
 var $ = require("jquery");
 
-require("./testStyles.less");
+require("./styles.less");
 
 var debug = true, current;
 
@@ -15,8 +17,12 @@ $(function(){
 
 	// create this on doc.ready, so we can render it
 	current = new Block({
-		name: "Test Framework",
+		name: router.activeRoute.pathname,
 		global: true,
+		init_route: function(){ return true; },
+		init_url: function(){
+			this.url = this.name
+		},
 		init_root: function(){},
 		init_register: function(){},
 		add: function(name, fn){
@@ -36,18 +42,55 @@ $(function(){
 });
 
 var Block = Base.extend({
-	v2: false,
 	name: "Block",
 	init: function(){
 		this.init_props();
 		this.init_root();
+
+		// init url after init root
+		this.init_url();
+
+		if (!this.init_route())
+			return false;
+
 		// render before register
 		debug && this.render();
 		this.init_register();
-		// has to come before init_firstChild...
-		this.v2 && this.init_conclude();
 
 		this.init_firstChild();
+	},
+	init_url: function(){
+		this.hash = hash(this.name);
+		var filePath = router.activeRoute.pathname;
+		this.url = filePath;
+		var parent = this.parent;
+		var parentHashes = [];
+		while(parent !== this.root){
+			parentHashes.unshift(parent.hash);
+			parent = parent.parent;
+		}
+		parentHashes.unshift(this.root.hash);
+
+		for (var i = 0; i < parentHashes.length; i++){
+			this.url += parentHashes[i] + "/";
+		}
+
+		this.url += this.hash + "/";
+	},
+	init_route: function(){
+		var filePath = router.activeRoute.pathname;
+
+		if (this.url.indexOf(window.location.pathname) === -1
+			&& window.location.pathname.indexOf(this.url) === -1){
+			
+			return false;
+		}
+
+		if (this.url === window.location.pathname){
+			this.chosen = true;
+		}
+
+		return true;
 	},
 	init_firstChild: function(){
 		if (this.index === 0){
@@ -72,14 +115,17 @@ var Block = Base.extend({
 	},
 	render: function(){
 		this.$el = $("<div>").addClass("block");
-		this.$name = $("<div>").addClass("name").text(this.name + " - ").appendTo(this.$el);
+		this.$name = $("<a>").addClass("name").attr("href", this.url).text(this.name + " - ").appendTo(this.$el);
 		this.$count = $("<span></span>").text(this.runCount).appendTo(this.$name);
 		this.$icon = $("<div></div>").addClass("icon").prependTo(this.$el);
 
 		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
 
+		if (this.chosen)
+			this.$el.addClass("chosen");
+
 		var tags = [
-			"finished", "digging", "scanning", "repeating", "skipping", "node", "nextNode"
+			"finished", "node", "nextNode"
 		];
 
 		for (var i = 0; i < tags.length; i++){
@@ -101,15 +147,6 @@ var Block = Base.extend({
 	addChild: function(block){
 		// add to the children array, and store the index on the block
 		block.index = this.children.push(block) - 1;
-
-		if (this.v2){
-			if (!this.global){
-				if (block.index === 0)
-					this.registerFirstChild();
-				else if (block.index === 1)
-					this.registerSecondChild(block);
-			}
-		}
 	},
 	reAdd: function(block){
 		if (block.finished){
@@ -135,66 +172,6 @@ var Block = Base.extend({
 				parent: this
 			}); 
 		}
-	},
-	init_conclude: function(){
-		// by default, change if needed
-		this.conclude = this.finish;
-	},
-	nothing: function(){},
-	registerFirstChild: function(){
-		// this is important
-			// if 0 children, this doesn't run, and default conclude => finish
-			// if 1 child, and does finish, then we call notify, which resets conclude => finish
-			// if 1 child, and does not finish, then we do nothing
-		this.conclude = this.nothing;
-		if (this.v2)
-			this.notify2 = this.init_conclude;
-		else
-			this.notify = this.init_conclude; // or this.resetConclude? 
-	},
-	registerSecondChild: function(secondChild){
-		// default conclude => finish, or, in the case of unfinished first child, then conclude => nothing
-		// either way, we want to make sure conclude => nothing
-		this.conclude = this.nothing;
-
-		// only runs in "scan" mode, on first run...?  registerFirstChild vs reAddFirstChild
-		// we don't know how many children we'll have, but we know we have at least a second
-		// all that matters at this point, is.. first child finished?
-
-// but... we've changed this.notify => reset conclude => finish, which is only the case with 1 child.
-// once we get the second child, we need to switch it back to.. itself.
-// is that regardless of whether first child finished?
-
-// if first child finished, and we add a second child, we need to re-listen to 
-
-// wouldn't it be easier just to write these conditions???
-		if (this.children[0].finished){
-			if (this.root.nextNode)
-				console.error("shouldn't have a nextNode if first child finished");
-
-			this.root.setNextNode(secondChild);
-			// this.conclude = this.nothing; // already done
-
-			// this.
-		} else {
-			// leave conclude => nothing
-		}
-	},
-	notify2: function(child){
-		console.group("notify for " + this.name);
-		if (this.children[child.index + 1]){
-			console.log("has nextChild");
-			if (!this.root.nextNode){
-				console.log("no nextNode, set to nextChild");
-				this.root.setNextNode(this.children[child.index + 1]);
-			} else {
-				console.log("already have nextNode");
-			}
-		} else {
-			console.log("no nextChild, .finish()");
-			this.finish("notified");
-		}
-		console.groupEnd();
 	},
 	isRoot: function(){
 		return this === this.root;
@@ -239,54 +216,31 @@ var Block = Base.extend({
 		this.root.blocksToClean.push(this);
 	},
 	concludeFirstRun: function(){
-		console.group("concludeFirstRun for " + this.name);
-
-
-		// false.  on repeat, we can still "dig", and conclude a child's first run, when the parent is in 2nd+ run.  these logs CAN and DO trigger notify actions...
 		if (!this.children.length){
 			this.finish("empty");
-			console.log("empty");
 		} else if (this.children.length === 1){
-			if (this.children[0].finished){
+			if (this.children[0].finished){ // children[0] must be node? no, not if it had a single, finished child of its own...
 				this.finish("1.finished");
-				console.log("1.finished");
 			} else {
-				console.warn("1.unfinished");
+				// console.warn("1.unfinished");
 			}
 		} else if (this.children[1]){
-			console.log("has 2nd child");
 			if (!this.root.nextNode){
-				console.log("no nextNode, setNextNode(2ndChild)");
 				this.root.setNextNode(this.children[1]);
-			} else {
-				if (this.children[0].finished)
-					console.error("if we have nextNode, that should mean first child didn't finish");
-				console.warn("already have nextNode, do nothing");
 			}
 		}
-		console.groupEnd();
 	},
 
-	// child notifies parent when child is finished
+	// this is important, so we know which child finished, and can advance to next child
 	notify: function(child){
+		// only applicable to 2nd+ run, after we've scanned all children
 		if (this.runCount > 1){
-			console.group("notify for " + this.name);
 			if (this.children[child.index + 1]){
-				console.log("has nextChild");
-				if (!this.root.nextNode){
-					console.log("no nextNode, set to nextChild");
+				if (!this.root.nextNode)
 					this.root.setNextNode(this.children[child.index + 1]);
-				} else {
-					console.error("shouldn't have nextNode?");
-					// why can't a node finish, set nextNode, and still get here?
-					// i don't know...
-						// 
-				}
 			} else {
-				console.log("no more children, .finish()");
 				this.finish("notified");
 			}
-			console.groupEnd();
 		}
 	},
 	finish: function(reason){
@@ -337,9 +291,17 @@ var RootBlock = Block.extend({
 	init: function(){
 		this.constructor.base.prototype.init.call(this);
 		// this.parent.rootBlocks.push(this);
+
+		if (!this.init_route())
+			return false;
 		this.setNode(this);
 		this.exec();
 		this.done();
+	},
+	init_url: function(){
+		this.hash = hash(this.name);
+		var filePath = router.activeRoute.pathname;
+		this.url = filePath + this.hash + "/";
 	},
 	init_firstChild: function(){},
 	init_root: function(){
@@ -367,7 +329,6 @@ var RootBlock = Block.extend({
 	},
 	exec: function(){
 		this.prep();
-		debugger;
 		this.run();
 		this.conclude();
 		this.cleanup();
@@ -415,6 +376,19 @@ var RootBlock = Block.extend({
 		}
 	}
 });
+
+var expect = exports.expect = function(a){
+	return {
+		toBe: function(b){
+			console.assert(a === b, a, "===", b);
+		},
+		not: {
+			toBe: function(b){
+				console.assert(a !== b, a, "!==", b);
+			}
+		}
+	}
+};
 
 var test = exports.test = function(){
 	return current.add.apply(current, arguments);
