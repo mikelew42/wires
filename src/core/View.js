@@ -1,19 +1,22 @@
-var Base = require("../Base");
+var Base3 = require("../Base3/Base3");
 // var Logged = require("../Base/Logged");
 var track = require("../track/track");
+var is = require("../is");
 
-var View = module.exports = Base.extend({
+var View = module.exports = Base3.extend({
 	name: "View",
-	create: function(){
-		track(this);
-		this.inst && this.inst();
-		this.assign.apply(this, arguments);
-		this.init && this.init();
-	},
+	set: new Base3.Set({
+		other: function(mod, arg){
+			if (is.str(arg))
+				mod.content = function(){
+					return arg;
+				};
+		}
+	}).fn,
 	init: function(){
-		this.initView();
+		this.init_view();
 	},
-	initView: function(){
+	init_view: function(){
 		if (this.autoRender !== false)
 			this.render();
 

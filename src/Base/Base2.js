@@ -4,19 +4,19 @@ var create = require("./create");
 var isExtensionOf = require("./isExtensionOf");
 var track = require("../track/track");
 
-var Base = createConstructor("Base");
+var Base2 = createConstructor("Base2");
 
-track(Base);
-track(Base.prototype);
+track(Base2);
+track(Base2.prototype);
 
-Base.assign({
+Base2.assign({
 	extend: new Extend().fn,
 	isExtensionOf: isExtensionOf
 });
 
-Base.prototype.assign({
+Base2.prototype.assign({
 	create: create,
 	init: function(){}
 });
 
-module.exports = Base;
+module.exports = Base2;
