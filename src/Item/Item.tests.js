@@ -6,7 +6,10 @@ var $ = require("jquery");
 var View = require("../core/View");
 
 var Item = require("./Item");
+	console.log(View.prototype.$el.attr("class"))
+
 var Icon = require("./Icon");
+	console.log(View.prototype.$el.attr("class"))
 
 $(function(){
 
@@ -16,8 +19,12 @@ var Tests = new View({
 
 test("Icon", function(){
 	Icon("beer");
-	Icon("shoe");
+	Icon("plane");
+	
+	console.log(View.prototype.$el.attr("class"))
+
 	View("hello world");
+
 });
 
 

@@ -7,6 +7,7 @@ var Set = module.exports = ModFn.extend({
 		for (var i = 0; i < args.length; i++){
 			this.arg(mod, args[i]); // keep mod as first arg
 		}
+		return mod; // important
 	},
 	arg: function(mod, arg){
 		if (is.obj(arg))
@@ -35,7 +36,7 @@ var Set = module.exports = ModFn.extend({
 		console.log("not sure what to do with this num", arg);
 	},
 	bool: function(mod, arg){
-		console.log("not sure what to do with this bool", bool);
+		console.log("not sure what to do with this bool", arg);
 	},
 	undef: function(mod, arg){
 		console.log("not sure what to do when its undefined");
@@ -48,7 +49,7 @@ var Set = module.exports = ModFn.extend({
 			if (is.undef(mod[i])){
 				this.stdProp(mod, obj, i);
 			} else if (mod[i].set) // dependent on is.def(mod[i])
-				mod[i].set.call(mod[i], obj[i]);
+				mod[i] = mod[i].set.call(mod[i], obj[i]); // usually will just reset itself, but allows .set to return something new, like an extended ModFn, for example
 			else if (is.fn(mod[i]))
 				this.fnProp(mod, obj, i);
 			else

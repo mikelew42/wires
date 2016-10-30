@@ -5,14 +5,21 @@ require("font-awesome-webpack");
 var Icon = module.exports = View.extend({
 	name: "Icon",
 	tag: "i",
-	classes: "icon fa fa-fw",
-	set: new Base3.Set({
+	addClass: "icon fa fa-fw",
+	set: {
 		str: function(icon, type){
 			icon.type(type);
+		},
+		bool: function(icon, bool){
+			if (bool)
+				console.warn("not supported");
+			else
+				icon.active = false;
 		}
-	}).fn,
+	},
 	type: function(type){
 		this.$el.removeClass("fa-" + this._type).addClass("fa-" + type);
 		this._type = type;
+		return this;
 	}
 });

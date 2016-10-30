@@ -8,26 +8,22 @@ var Extend = require("../ExtendModFn/ExtendModFn");
 var View = module.exports = Base3.extend({
 	name: "View",
 	tag: "div",
-	classes: "",
-	set: new Base3.Set({
+	capturable: true,
+	active: true,
+	set: {
 		str: function(mod, str){
 			mod.content = str;
 		}
-	}).fn,
-	extend: new Extend({
-		setupPrototype: function(Ext, Base, args){
-			Ext.prototype.assign.apply(Ext.prototype, args);
-		}
-	}).fn,
+	},
 	create: function(o){
 		track(this);
-		this.inst_el();
+		this.inst_el(this.constructor.prototype.$el);
 		this.inst && this.inst(); // setup sub instances before .set
 		this.set.apply(this, arguments);
 		this.init && this.init();
 	},
-	inst_el: function(){
-		this.$el = $("<" + this.tag + ">").addClass(this.constructor.prototype.$el.attr("class"));
+	inst_el: function($base_el){
+		this.$el = $("<" + this.tag + ">").addClass($base_el.attr("class"));
 	},
 	init: function(){
 		this.init_view();
@@ -51,12 +47,18 @@ var View = module.exports = Base3.extend({
 		child.$el.appendTo(this.$el);
 	},
 	render: function(){
-		this.captured(); // get captured by captor
-		this.render_content();
+		// this.render_el();
+		if (this.active){
+			this.get_captured(); // get captured by captor
+			this.render_content();
+		}
 		return this;
 	},
-	captured: function(){
-		if (View.captor)
+	render_el: function(){
+		this.$el = $("<" + this.tag + ">").addClass(this.classes);
+	},
+	get_captured: function(){
+		if (this.capturable && View.captor)
 			View.captor.add(this);
 	},
 	render_content: function(){
@@ -99,7 +101,15 @@ var View = module.exports = Base3.extend({
 	restore_captor: function(){
 		View.captor = this.previous_captor;
 	}
+}).assign({
+	Extend: Base3.Extend.extend({
+		instantiatePrototype: function(NewView, OldView){
+			NewView.prototype.inst_el(OldView.prototype.$el);
+		}
+	})
 });
+
+View.extend = new View.Extend().fn;
 
 var aliasFnToEl = function(fn){
 	return function(){
@@ -112,3 +122,8 @@ var aliasFnToEl = function(fn){
 	'css', 'attr', 'remove', 'empty', 'hasClass', 'html'].forEach(function(v){
 		View.prototype[v] = aliasFnToEl(v);
 });
+
+
+View.prototype.inst_el({ attr: function(){
+	return "";
+} })

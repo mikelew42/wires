@@ -206,11 +206,11 @@ test("Base3", function(){
 	
 		test("extend", function(){
 			var Base4 = Base3.extend({
-				set: new Set({
+				set: {
 					arg: function(mod, arg){
 						check.args.push(arg);
 					}
-				}).fn
+				}
 			}), check = { args: [] };
 
 			var base = new Base4();
@@ -222,6 +222,23 @@ test("Base3", function(){
 			assert(check.args[1] === 2);
 			assert(check.args[2] === 3);
 			assert(check.args[3] === 4);
+		});
+
+		test("uses .set on extend?", function(){
+			var Base4 = Base3.extend({
+				test: function(arg){
+					check.arg = arg
+				}
+			}), check = {};
+
+			assert(is.fn(Base4.prototype.test));
+
+			var Base5 = Base4.extend({
+				test: 1
+			});
+
+			assert(check.arg === 1);
+
 		});
 	});
 

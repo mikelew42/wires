@@ -146,9 +146,30 @@ test("Base2", function(){
 
 			var base = new Base3();
 			assert(check.init);
-
-
 		});
+
+		test("extending Extend...", function(){
+			var check = { main: 0 },
+				Base3 = Base2.extend({
+					Extend: {
+						main: function(){
+							check.main++;
+							return this.constructor.base.prototype.main.apply(this, arguments);
+						}
+					}
+				});
+
+			assert(check.main === 1);
+
+			assert(Base2.extend.modFn instanceof Base2.Extend);
+			assert(Base3.extend.modFn instanceof Base3.Extend);
+			assert(Base3.extend.modFn instanceof Base2.Extend);
+			assert(Base3.Extend.isExtensionOf(Base2.Extend));
+
+			var Base4 = Base3.extend();
+			assert(check.main === 2);
+		});
+
 	});
 });
 

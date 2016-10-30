@@ -1,7 +1,12 @@
 var ExtendModFn = require("./ExtendModFn");
 
 var ExtendModFn2 = ExtendModFn.extend({
+	setupConstructor: function(){
+		// here, do we want to auto-extend Class.Sub classes?
+			// the only use case for a Class.Sub so far is Class.Extend, and I'm handling that manually
 
+		
+	}
 });
 /*
 How do we modify extend before extending?
@@ -26,7 +31,7 @@ What if we just want the next class to have the new Extend?
 It depends on what you're upgrading...
 Non-breaking changes shouldn't matter - if you're adding conditional upgrades.
  --> If you need the upgrades during the immediate extend, which i suppose you might, then it would be best to have this immediate use of the new extend
- --> If you're making breaking changes, and you don't want it, maybe you can use assign, and do it manually later...?
+ --> If you're making breaking changes, and you don't want it, maybe you can use assign, and do it manually later...?  
 
 
 Auto Instantiation

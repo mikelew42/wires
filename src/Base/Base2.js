@@ -10,6 +10,7 @@ track(Base2);
 track(Base2.prototype);
 
 Base2.assign({
+	Extend: Extend,
 	extend: new Extend().fn,
 	isExtensionOf: isExtensionOf
 });

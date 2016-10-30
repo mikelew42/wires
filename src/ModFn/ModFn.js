@@ -12,7 +12,13 @@ var ModFn = Base.extend({
 			var args = argsToArray(arguments);
 			args.unshift(this);
 			return self.main.apply(self, args);
-		}
+		};
+		this.fn.modFn = this;
+		this.fn.set = function(o){
+			var MFn = this.modFn.constructor;
+			var NewModFn = MFn.extend(o);
+			return new NewModFn().fn;
+		};
 	},
 	main: function(ctx){
 		var args = this.args(arguments); // just chops off the first argument, the ctx, so you can "apply" the args
