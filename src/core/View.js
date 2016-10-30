@@ -3,6 +3,7 @@ var Base3 = require("../Base3/Base3");
 var track = require("../track/track");
 var is = require("../is");
 var $ = require("jquery");
+var Extend = require("../ExtendModFn/ExtendModFn");
 
 var View = module.exports = Base3.extend({
 	name: "View",
@@ -13,6 +14,21 @@ var View = module.exports = Base3.extend({
 			mod.content = str;
 		}
 	}).fn,
+	extend: new Extend({
+		setupPrototype: function(Ext, Base, args){
+			Ext.prototype.assign.apply(Ext.prototype, args);
+		}
+	}).fn,
+	create: function(o){
+		track(this);
+		this.inst_el();
+		this.inst && this.inst(); // setup sub instances before .set
+		this.set.apply(this, arguments);
+		this.init && this.init();
+	},
+	inst_el: function(){
+		this.$el = $("<" + this.tag + ">").addClass(this.constructor.prototype.$el.attr("class"));
+	},
 	init: function(){
 		this.init_view();
 	},
@@ -35,7 +51,6 @@ var View = module.exports = Base3.extend({
 		child.$el.appendTo(this.$el);
 	},
 	render: function(){
-		this.render_el();
 		this.captured(); // get captured by captor
 		this.render_content();
 		return this;
@@ -44,16 +59,17 @@ var View = module.exports = Base3.extend({
 		if (View.captor)
 			View.captor.add(this);
 	},
-	render_el: function(){
-		this.$el = $("<" + this.tag + ">").addClass(this.classes);
-	},
 	render_content: function(){
 		if (!is.def(this.content))
 			return false;
 		if (is.fn(this.content))
 			this.capture_content();
 		else if (is.str(this.content))
-			this.$el.append(this.content);
+			this.$el.append(this.content).addClass("str-content");
+		else if (is.num(this.content))
+			this.$el.append(this.content).addClass("num-content");
+		else if (is.bool(this.content))
+			this.$el.append(this.content.toString()).addClass("bool-content");
 		else
 			console.error("not supported");
 	},

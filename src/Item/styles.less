@@ -26,15 +26,43 @@
 	}
 }
 
-	.item {
-		margin-bottom: 1em;
-		&, * {
-			border: 1px solid black;
-		}
-	}
-	.pad-self, .pad-children > * {
+.wrapper {
+	padding: 0;
+	& > * {
 		padding: 1em;
 	}
+}
+
+.value {
+	&.num-content {
+		font-weight: bold;
+		color: blue;
+	}
+
+	&.str-content {
+		color: red;
+	}
+
+	&.bool-content {
+		font-weight: bold;
+		color: purple;
+	}
+}
+
+
+.item {
+	margin-bottom: 1em;
+	&, * {
+		border: 1px solid black;
+	}
+
+	& > .value {
+		margin-left: auto;
+	}
+}
+.pad-self, .pad-children > * {
+	padding: 1em;
+}
 
 
 .light {

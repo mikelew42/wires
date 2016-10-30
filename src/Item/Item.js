@@ -3,15 +3,28 @@ var View = require("../core/View");
 require("font-awesome-webpack");
 var Icon = require("./Icon");
 require("./styles.less");
+var is = require("../is");
 
 var Item = module.exports = View.extend({
 	name: "Item",
-	classes: "item",
+	classes: "item flex pad-children",
 	Icon: Icon,
 	icon: "folder",
+	set: new Base3.Set({
+		str: function(item, str){
+			item.name = str;
+		}
+	}).fn,
+	inst: function(){
+		this.icon = new this.Icon({
+			autoRender: false,
+			parent: this
+		});
+	},
 	init: function(){
 		// must init_icon before auto render!
 		this.init_icon();
+		this.init_value();
 
 		this.init_view();
 	},
@@ -26,18 +39,53 @@ var Item = module.exports = View.extend({
 			);
 		}
 	},
+	init_value: function(){
+		// does not show, by default
+		if (is.def(this.value)){
+			this.value = new View({
+				autoRender: false,
+				classes: "value",
+				content: this.value
+			})
+		}
+	},
 	content: function(){
 		// Icon("plane");
 
 		// set icon: false to skip
-		if (this.icon)
-			this.icon.render();
+		if (this.icon){
+			this.icon.render(); // .addClass("pad-self");
 
-		View({ classes: "title" }, this.name);
+			// encapsulate the addClass part
+			// make the icon a getSet super function, "binding" it to the Item view instance
+			// then, in the "getter" switch (inside .main), do a "capture me" call
+			// the getter just returns the icon type, but could also let you simply write:
+			// this.icon();
+
+			// and also, maybe auto-instantiate all of the sub views, and allow .set --> pass the { icon: "type" } directly to the .icon view, so you don't have this wonky "set icon to a string, then have it convert to a view" 
+		}
+
+		View({ classes: "name" }, this.name);
+
+		if (this.value){
+			this.addClass("has-value");
+			this.value.render();
+		}
 	}
 });
 
 /*
+
+Icon by default?
+Item("name only") --> uses default icon?
+or
+Item({
+	name: "Name only" --> uses default icon, because we didn't clobber the .content fn
+});
+
+
+
+
 
 Two use cases:  On-the-fly views, and Reusable views
 

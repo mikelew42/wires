@@ -7,8 +7,12 @@ var Icon = module.exports = View.extend({
 	tag: "i",
 	classes: "icon fa fa-fw",
 	set: new Base3.Set({
-		str: function(icon, name){
-			icon.classes = icon.classes + " fa-" + name;
+		str: function(icon, type){
+			icon.type(type);
 		}
-	}).fn
+	}).fn,
+	type: function(type){
+		this.$el.removeClass("fa-" + this._type).addClass("fa-" + type);
+		this._type = type;
+	}
 });

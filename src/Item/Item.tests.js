@@ -23,19 +23,69 @@ test("Icon", function(){
 
 test("Item", function(){
 
-	// var item;
-	// var block = 
-	test("test", function(){
-		// item = 
-		test("uhh huh", function(){
-			Icon("circle");
-			// View("yeaaaa");
+	test("note", function(){
+		View("You could automate testing of the markup generated, by using outerHtml.");
+		View("You wouldn't want to have to do it manually, and so you'd need an 'approve' feature, that would save the markup for future comparison.");
+	});
+
+	test("default", function(){
+		Item();
+	});
+
+	test("named", function(){
+		Item("yea?");
+	});
+
+	test("no icon", function(){
+		Item({
+			icon: false
 		});
-		test("yea?", function(){
-			Item();
+	});
+
+	test("extend if you want default: no icon", function(){
+		var Item2 = Item.extend({
+			icon: false
+		});
+
+		Item2();
+		Item2({
+			icon: "folder"
 		})
 	});
-	// block.$el.append(item.$el);
+
+	test("with value", function(){
+		Item({
+			name: "Icon Item with Number Value",
+			value: 123,
+			icon: "coffee"
+		});
+
+		Item({
+			name: "Icon Item with String Value",
+			value: "123",
+			icon: "credit-card"
+		});		
+
+		Item({
+			name: "Icon Item with True Value",
+			value: true,
+			icon: "credit-card"
+		});
+
+		Item({
+			name: "Icon Item with False Value",
+			value: false,
+			icon: "credit-card"
+		});
+	});
+
+	test("with value, no icon", function(){
+		Item({
+			name: "Value, but no icon",
+			icon: false,
+			value: "Yee haw"
+		})
+	});
 
 });
 
