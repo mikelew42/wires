@@ -14,6 +14,35 @@ var Set = module.exports = ModFn.extend({
 		else
 			this.other(mod, arg);
 	},
+	other: function(mod, arg){
+		if (is.str(arg))
+			this.str(mod, arg);
+		else if (is.num(arg))
+			this.num(mod, arg);
+		else if (is.bool(arg))
+			this.bool(mod, arg);
+		else if (is.undef(arg))
+			this.undef(mod, arg);
+		else if (is.fn(arg))
+			this.setFn(mod, arg); // .fn is taken..
+		else
+			this.unknown(mod, arg);
+	},
+	str: function(mod, arg){
+		console.log("not sure what to do with this str", arg);
+	},
+	num: function(mod, arg){
+		console.log("not sure what to do with this num", arg);
+	},
+	bool: function(mod, arg){
+		console.log("not sure what to do with this bool", bool);
+	},
+	undef: function(mod, arg){
+		console.log("not sure what to do when its undefined");
+	},
+	setFn: function(mod, arg){
+		console.log("not sure what to do with this fn");
+	},
 	obj: function(mod, obj){
 		for (var i in obj){
 			if (is.undef(mod[i])){

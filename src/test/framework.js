@@ -3,6 +3,8 @@ var Base = require("../Base");
 var router = require("../router");
 var hash = require("../utils/utils").sanitizeString;
 
+var View = require("../core/View");
+
 var $ = require("jquery");
 
 require("./styles.less");
@@ -25,7 +27,7 @@ $(function(){
 		},
 		init_root: function(){},
 		init_register: function(){},
-		add: function(name, fn){
+		addBlock: function(name, fn){
 			var block = new RootBlock({
 				name: name,
 				fn: fn,
@@ -35,6 +37,7 @@ $(function(){
 			// this.rootBlocks.push(block);
 
 			// block.execRoot();
+			return block;
 		},
 		notify: function(){},
 		notify2: function(){}
@@ -117,7 +120,6 @@ var Block = Base.extend({
 		this.$el = $("<div>").addClass("block");
 		this.$name = $("<a>").addClass("name").attr("href", this.url).text(this.name + " - ").appendTo(this.$el);
 		this.$count = $("<span></span>").text(this.runCount).appendTo(this.$name);
-		this.$icon = $("<div></div>").addClass("icon").prependTo(this.$el);
 
 		this.$tags = $("<div></div>").addClass("tags").appendTo(this.$el);
 
@@ -161,7 +163,7 @@ var Block = Base.extend({
 			return false;
 		}
 	},
-	add: function(name, fn){
+	addBlock: function(name, fn){
 		var block = this.blocks[name];
 		if (block){
 			return this.reAdd(block);
@@ -193,9 +195,19 @@ var Block = Base.extend({
 	capture: function(){
 		this.previous = current;
 		current = this;
+
+		this.previous_view_captor = View.captor;
+		View.captor = this;
 	},
 	restore: function(){
 		current = this.previous;
+
+		View.captor = this.previous_view_captor;
+	},
+	// conforming to View.captor.add() api...
+	add: function(childView){
+		this.renderChildContainer();
+		childView.$el.appendTo(this.$children);
 	},
 	track: function(){
 		if (this.runCount > 20){
@@ -391,5 +403,5 @@ var expect = exports.expect = function(a){
 };
 
 var test = exports.test = function(){
-	return current.add.apply(current, arguments);
+	return current.addBlock.apply(current, arguments);
 };

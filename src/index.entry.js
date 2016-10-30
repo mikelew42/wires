@@ -2,6 +2,7 @@
 require("./test");
 
 var Page = require("./Page/Page");
+var Item = require("./Item/Item");
 
 new Page({
 	name: "Test1",
@@ -13,7 +14,10 @@ new Page({
 });
 
 new Page({
-	name: "Test2"
+	name: "Test2",
+	content: function(){
+		Item()
+	}
 });
 
 

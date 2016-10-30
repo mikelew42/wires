@@ -12,18 +12,13 @@ body {background: #333;padding-top: 20px; overflow: scroll; }
 		color: white;
 	}
 
-	& > .icon {
-		float: left;
-		margin-right: 5px;
-		margin-top: 7px;
-		margin-left: -10px;
-		height: 10px;
-		width: 10px;
-		background: white;
-		border: 1px solid black;
-	}
 	&.chosen {
 		border: 2px solid orange;
+	}
+
+	& > .children {
+		padding: 5px 0px 2px 10px;
+		background: #fff;
 	}
 }
 
@@ -31,9 +26,6 @@ body {background: #333;padding-top: 20px; overflow: scroll; }
 	background: #333;
 	& > .name {
 		background: #555;
-	}
-	& > .icon {
-		background: black;
 	}
 	& > .tags > .tag.finished {
 		display: inline-block;
@@ -77,26 +69,11 @@ body {background: #333;padding-top: 20px; overflow: scroll; }
 	background: grey;
 }
 
-.block .children {
-	padding: 5px 0px 2px 10px;
-}
-
 .node {
-	& > .icon {
-		border: 2px solid red;
-	}
 	& > .tags > .node.tag {
 		display: inline-block;
 		background: orange;
 	}
-}
-
-.next > .icon {
-	border: 5px solid yellow;
-}
-
-.active > .icon {
-	border: 2px solid blue;
 }
 
 .open {

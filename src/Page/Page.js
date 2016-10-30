@@ -51,7 +51,7 @@ var Captive = View.extend({
 	}
 });
 
-var h1 = Captive.extend({
+var h1 = View.extend({
 	tag: "h1",
 	classes: ["test"],
 	content: function(){
@@ -59,7 +59,7 @@ var h1 = Captive.extend({
 	}
 });
 
-var Page = Captive.extend({
+var Page = View.extend({
 	name: "Page",
 	classes: [],
 	init: function(){
