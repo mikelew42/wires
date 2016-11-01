@@ -91,7 +91,6 @@ var Logger = Module.extend({
 	name: "Logger",
 	Method: Method,
 	methods: {},
-	assign: eventedAssign,
 	config: function(){
 		// console.groupCollapsed("Logger.config");
 		// this === Class

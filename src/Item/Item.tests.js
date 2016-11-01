@@ -62,25 +62,25 @@ test("Item", function(){
 
 	test("with value", function(){
 		Item({
-			name: "Icon Item with Number Value",
+			label: "Icon Item with Number Value",
 			value: 123,
 			icon: "coffee"
 		});
 
 		Item({
-			name: "Icon Item with String Value",
+			label: "Icon Item with String Value",
 			value: "123",
 			icon: "credit-card"
 		});		
 
 		Item({
-			name: "Icon Item with True Value",
+			label: "Icon Item with True Value",
 			value: true,
 			icon: "credit-card"
 		});
 
 		Item({
-			name: "Icon Item with False Value",
+			label: "Icon Item with False Value",
 			value: false,
 			icon: "credit-card"
 		});
@@ -88,7 +88,7 @@ test("Item", function(){
 
 	test("with value, no icon", function(){
 		Item({
-			name: "Value, but no icon",
+			label: "Value, but no icon",
 			icon: false,
 			value: "Yee haw"
 		})

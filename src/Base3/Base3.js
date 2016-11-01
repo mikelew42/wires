@@ -1,22 +1,30 @@
 var Base2 = require("../Base/Base2");
 var create = require("./create");
 var Set = require("./Set");
-var Extend = require("../ExtendModFn/ExtendModFn");
+var Extend = require("../ExtendModFn/ExtendModFn2");
+var events = require("events");
+var track = require("../track/track");
+var createConstructor = require("./createConstructor");
+var isExtensionOf = require("../Base/isExtensionOf");
 
-var Base3 = module.exports = Base2.extend({
-	name: "Base3",
+
+var Base3 = createConstructor("Base3");
+track(Base3);
+track(Base3.prototype);
+
+Base3.assign({
+	Extend: Extend,
+	extend: new Extend().fn, // this could be autoInstantiated?
+	isExtensionOf: isExtensionOf
+}, events.prototype); // .on, .emit, etc. .extend will clobber the ._events
+
+Base3.prototype.assign({
 	create: create,
-	set: new Set().fn
-}).assign({
-	// we don't want this to run immediately in this case, because Base2.prototype.set doesn't exist...
-	Extend: Base2.Extend.extend({
-		setupPrototype: function(Ext, Base, args){
-			Ext.prototype.set.apply(Ext.prototype, args);
-		}
-	})
+	set: new Set().fn, // not a true Sub module (not autoInstantiated per instance)
+	init: function(){}
 });
 
-Base3.extend = new Base3.Extend().fn;
+module.exports = Base3;
 
 /*
 Do we want to use .set on extend?

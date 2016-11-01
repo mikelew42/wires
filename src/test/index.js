@@ -25,8 +25,8 @@ var requireContext = require.context('../', true, /\.tests\.js$/);
 
 createTestRoutes(requireContext);
 
-var runAllTests = function(){
-
+var runAllTests = function(requireContext){
+	requireContext.keys().forEach(requireContext); 
 };
 
 router.addRoutes(new Route({
@@ -34,5 +34,19 @@ router.addRoutes(new Route({
 	label: "/test/",
 	allowDefault: true
 }).then(function(){
-	runAllTests();
+	runAllTests(requireContext);
+
+	// this won't work, since we're running tests async on doc.ready...
+	// var success = true;
+	// try {
+	// 	runAllTests(requireContext);
+	// } catch (e) {
+	// 	success = false;
+	// 	console.error("Tests failed");
+	// 	throw e;
+	// }
+
+	// if (success){
+	// 	console.log("%cAll tests passed", "color: green");
+	// }
 }));

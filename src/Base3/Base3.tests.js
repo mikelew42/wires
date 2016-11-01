@@ -242,6 +242,36 @@ test("Base3", function(){
 		});
 	});
 
+	test("events", function(){
+
+		var Base4 = Base3.extend({
+
+		}), check = { count: 0 };
+
+		Base4.on("something", function(){
+			check.count++;
+		});
+
+		assert(check.count === 0);
+		Base4.emit("something");
+		assert(check.count === 1);
+
+		// delete all events on .extend
+		var Base5 = Base4.extend();
+
+		Base5.emit("something");
+		assert(check.count === 1);
+	});
+
+	test("default new event", function(){
+		var Base4 = Base3.extend({
+			name: "Base4"
+		});
+		Base4.on("new", function(mod){
+			console.log(mod);
+		});
+		var base = new Base4();
+	});
 });
 
 });

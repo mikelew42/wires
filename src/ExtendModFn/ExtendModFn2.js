@@ -1,13 +1,23 @@
 var ExtendModFn = require("./ExtendModFn");
+var track = require("../track/track");
+var createConstructor = require("../Base3/createConstructor");
 
 var ExtendModFn2 = ExtendModFn.extend({
-	setupConstructor: function(){
-		// here, do we want to auto-extend Class.Sub classes?
-			// the only use case for a Class.Sub so far is Class.Extend, and I'm handling that manually
-
-		
+	setupConstructor: function(Ext, Base){
+		Ext.assign(Base);
+			Ext._events = {};
+			track(Ext);
+		Ext.base = Base;
+	},
+	setupPrototype: function(Ext, Base, args){
+		Ext.prototype.set.apply(Ext.prototype, args);
+	},
+	createConstructor: function(name){
+		return createConstructor(name);
 	}
 });
+
+module.exports = ExtendModFn2;
 /*
 How do we modify extend before extending?
 

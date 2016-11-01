@@ -12,7 +12,7 @@ var Item = module.exports = View.extend({
 	icon: "folder",
 	set: {
 		str: function(item, str){
-			item.name = str;
+			item.label.set(str);
 		}
 	},
 	inst: function(){
@@ -34,10 +34,53 @@ var Item = module.exports = View.extend({
 				}
 			}
 		});
+
+		this.label = new View({
+			autoRender: false,
+			addClass: "label",
+			content: "Item",
+			set: {
+				other: function(view, value){
+					view.content = value;
+					view.active = true;
+				}
+			}
+		});
 	},
 	content: function(){
 		this.icon.render();
-		View({ addClass: "name" }, this.name);
+		this.label.render();
 		this.value.render();
 	}
 });
+
+/*
+
+new View({
+	addClass: "item",
+	content: function(){
+		this.icon = new Icon("beer"); // if those below aren't captured, how do we make this get captured?
+		this.value = new View(123 || "xyz");
+	}
+})
+
+new View({
+	addClass: "item",
+	icon: Icon("beer"), // how do we prevent these from getting captured?
+	value: View(123 || "xyz"),
+	content: function(){
+		this.icon.render();
+		this.value.render();
+	}
+});
+
+Predefining views is most useful for defining a Class:
+
+Item = View.extend({
+	addClass: "item",
+	icon: Icon("beer"), // vs
+	Icon: Icon.extend("beer"); // and then, autoInstantiate through some kind of "install" or "attach" hook/fn?
+});
+
+
+*/
