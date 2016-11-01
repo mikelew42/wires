@@ -266,11 +266,55 @@ test("Base3", function(){
 	test("default new event", function(){
 		var Base4 = Base3.extend({
 			name: "Base4"
-		});
-		Base4.on("new", function(mod){
-			console.log(mod);
+		}), check = {};
+		Base4.on("new", function(base){
+			check.base = base;
 		});
 		var base = new Base4();
+		assert(check.base === base);
+	});
+
+	test("inst", function(){
+		var Base4 = Base3.extend({
+			Sub: Base3.extend({
+				name: "Sub",
+				prop: 5
+			}).assign({
+				setup: function(parent){
+					// this === Sub
+					parent.sub = new this();
+				}
+			})
+		});
+
+		var base = new Base4();
+
+		assert(base.sub instanceof base.Sub);
+	});
+
+	test("setup", function(){
+		// setup only runs when called from a parent... if the class hasn't been added to a parent, then it wouldn't run..
+
+		var Base4 = Base3.extend({
+			name: "Base4"
+		});
+
+		var Base5 = Base3.extend({
+			name: "Base5",
+			Base4: Base4
+		});			
+
+		test("auto", function(){		
+			var base = new Base5();
+			assert(base.base4 instanceof Base4);
+		});
+
+		test("bypass", function(){
+			Base4.setup = false;
+			var base = new Base5();
+			assert(is.undef(base.base4));
+		});
+
 	});
 });
 

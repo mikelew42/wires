@@ -19,6 +19,11 @@ var ExtendModFn2 = ExtendModFn.extend({
 
 module.exports = ExtendModFn2;
 /*
+
+
+
+
+
 How do we modify extend before extending?
 
 Extend is a Class.Extend sub class...

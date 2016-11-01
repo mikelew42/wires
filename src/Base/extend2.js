@@ -78,6 +78,7 @@ var extend = module.exports = {
 		track(Ext.prototype);
 		Ext.prototype.constructor = Ext;
 		Ext.prototype.type = Ext.name;
+		Ext.prototype.name = Ext.name[0].toLowerCase() + Ext.name.substring(1);
 	},
 	setupPrototype: function(Ext, Base, args){
 		Ext.prototype.assign.apply(Ext.prototype, args);
