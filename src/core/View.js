@@ -9,10 +9,11 @@ var View = module.exports = Base3.extend({
 	name: "View",
 	tag: "div",
 	capturable: true,
-	active: true,
+	active: false,
 	set: {
-		str: function(mod, str){
-			mod.content = str;
+		other: function(view, val){
+			view.content = val;
+			view.active = true; 
 		}
 	},
 	create: function(o){
@@ -58,8 +59,10 @@ var View = module.exports = Base3.extend({
 		this.$el = $("<" + this.tag + ">").addClass(this.classes);
 	},
 	get_captured: function(){
-		if (this.capturable && View.captor)
+		if (this.capturable && View.captor){
+			this.active = true;
 			View.captor.add(this);
+		}
 	},
 	render_content: function(){
 		if (!is.def(this.content))

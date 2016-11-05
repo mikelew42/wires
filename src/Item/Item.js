@@ -10,9 +10,11 @@ var Item = module.exports = View.extend({
 	addClass: "item flex pad-children",
 	Icon: Icon,
 	icon: "folder",
+	active: true,
 	set: {
-		str: function(item, str){
-			item.label.set(str);
+		other: function(item, val){
+			item.label.set(val);
+			item.active = true;
 		}
 	},
 	inst: function(){

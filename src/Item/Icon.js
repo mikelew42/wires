@@ -9,6 +9,7 @@ var Icon = module.exports = View.extend({
 	set: {
 		str: function(icon, type){
 			icon.type(type);
+			icon.active = true;
 		},
 		bool: function(icon, bool){
 			if (bool)
