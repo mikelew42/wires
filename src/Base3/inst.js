@@ -3,7 +3,7 @@ var inst = function(){
 		if (i === "constructor")
 			continue;
 		if (this[i] && this[i].setup)
-			this[i].setup(this);
+			this[i].setup(this, i);
 	}
 };
 

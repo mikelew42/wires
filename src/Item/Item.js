@@ -8,6 +8,7 @@ var is = require("../is");
 var Item = module.exports = View.extend({
 	name: "Item",
 	addClass: "item flex pad-children",
+	active: true,
 	set: {
 		other: function(item, val){
 			item.label.set(val);
@@ -35,6 +36,7 @@ var Item = module.exports = View.extend({
 		name: "Label",
 		autoRender: false,
 		addClass: "label",
+		active: true,
 		content: "Item",
 		set: { other: function(label, value){
 			label.content = value;

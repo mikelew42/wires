@@ -149,8 +149,38 @@ test("Base3", function(){
 
 			var base = new Base4();
 			assert(check.init);
+		});
 
+		test("recursiveExtend", function(){
+			var check = {};
+			var Base4 = Base3.extend({
+				Sub: Base3.extend({
+					prop: 5
+				})
+			});
 
+			assert(Base4.prototype.Sub.isExtensionOf(Base3));
+
+			var base = Base4();
+
+			assert(base.sub instanceof Base3);
+			assert(base.sub.prop === 5);
+
+			// extend.protectPrototype
+			var Base5 = Base4.extend();
+			assert(Base5.prototype.Sub.isExtensionOf(Base4.prototype.Sub));
+			var base5 = Base5();
+			assert(base5.sub.prop === 5);
+
+			// extend.recursiveExtend
+			var Base6 = Base4.extend({
+				Sub: {
+					prop: 6
+				}
+			});
+			assert(Base6.prototype.Sub.isExtensionOf(Base4.prototype.Sub));
+			var base6 = Base6();
+			assert(base6.sub.prop === 6);
 		});
 	});
 
@@ -314,6 +344,94 @@ test("Base3", function(){
 			var base = new Base5();
 			assert(is.undef(base.base4));
 		});
+
+	});
+
+	test("Property", function(){
+/*
+We won't always use Property as a Module.prototype.Property sub class that gets auto instantiated...
+
+Sometimes we'll want to use Property in a quick/informal way.
+
+In fact, I'll probably just auto-upgrade all properties...?
+
+Anyway - we need a hook to run once the parent has been assigned.
+
+How about... install?
+*/
+
+// It's really important to protect the Base.prototype, and re-instantiate these properties.  If not, changing the property value will change the base class.
+	// I have yet to rewrite the recursive extend, where that might take place...
+		var Property = Base3.extend({
+			value: undefined, // <--- this is where the value is stored
+			init: function(){
+				if (this.parent)
+					this.install();
+			},
+			install: function(){
+				// if each prototype gets a new instance (we're not trying to share these properties all the way down the food-chain, like normal props?)
+					// no, I don't think that's smart
+					// so, in some rare instances, when you're trying to use that fallback feature to return a property to its default,
+					// these props will work slightly different to normal props
+					// if you absolutely need that feature, you would have to rewrite this...
+				var prop = this;
+				Object.defineProperty(this.parent, this.name, {
+					get: function(){
+						return prop.getter();
+					},
+					set: function(value){
+						prop.setter(value);
+					}
+				});
+
+				this.parent.props = this.parent.props || {};
+				this.parent.props[this.name] = this;
+			},
+			getter: function(){
+				return this.value;
+			},
+			setter: function(value){
+				this.value = value;
+			}
+		}).assign({
+			setup: function(parent, name){
+				name = name[0].toLowerCase() + name.substring(1);
+				// don't assign it, as with a normal property
+				new this({
+					name: name,
+					parent: parent
+				});
+			}
+		});
+
+		var Module = Base3.extend({
+			prop: function(names){
+				if (arguments.length === 1 && this.props[names]){
+					return this.props[names];
+				} else {
+					for (var i = 0; i < arguments.length; i++){
+						new Property({
+							name: arguments[i],
+							parent: this
+						});
+					}
+				}
+			},
+			// we could skip copying this to the instance, by default, as it would rarely be needed...  and cleans up the appearance of the prototype
+			SomeProp: Property.extend(),
+		});
+
+		// assert(Module.prototype.someProp instanceof Property);
+
+		var mod = Module();
+
+		assert(is.undef(mod.someProp));
+		assert(mod.props.someProp instanceof Property);
+
+		mod.someProp = 5;
+
+		assert(mod.someProp === 5);
+		assert(mod.props.someProp.value === 5);
 
 	});
 });

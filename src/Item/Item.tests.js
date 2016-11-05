@@ -58,6 +58,9 @@ test("Item", function(){
 		Item2({
 			icon: "folder"
 		})
+		Item2({
+			value: 456789
+		})
 	});
 
 	test("with value", function(){

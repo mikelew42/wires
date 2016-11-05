@@ -1,6 +1,7 @@
 var ExtendModFn = require("./ExtendModFn");
 var track = require("../track/track");
 var createConstructor = require("../Base3/createConstructor");
+var is = require("../is");
 
 var ExtendModFn2 = ExtendModFn.extend({
 	setupConstructor: function(Ext, Base){
@@ -9,8 +10,56 @@ var ExtendModFn2 = ExtendModFn.extend({
 			track(Ext);
 		Ext.base = Base;
 	},
-	setupPrototype: function(Ext, Base, args){
+	setupPrototype_old: function(Ext, Base, args){
 		Ext.prototype.set.apply(Ext.prototype, args);
+	},
+	setupPrototype: function(Ext, Base, args){
+		// this should handle .set and .extend
+		this.recursiveExtend(Ext, Base, args);
+
+		// auto extend Sub classes for protection
+		this.protectPrototype(Ext, Base, args);
+
+	},
+	recursiveExtend: function(Ext, Base, args){
+		var arg, propValue, setter;
+		// allow multiple objects
+		for (var i = 0; i < args.length; i++){
+			arg = args[i];
+			// loop over each property
+			for (var propName in arg){
+				propValue = arg[propName];
+				// if the prototype[prop] is a Sub class, and the incoming property is an object, then pass that obj to extend, and replace the prototype[prop] with the new class
+				if (is.fn(Ext.prototype[propName]) && Ext.prototype[propName].extend && is.obj(propValue) ){
+					// console.log("recursiveExtending");
+					if (!propValue.name)
+						propValue.name = Ext.prototype[propName].name;
+					Ext.prototype[propName] = 
+						Ext.prototype[propName].extend(propValue);
+				} else {
+					// set it
+					setter = {};
+					setter[propName] = propValue;
+					Ext.prototype.set(setter);
+				}
+			}
+		}
+		return this;
+	},
+	protectPrototype: function(Ext, Base, args){
+		var prop;
+		for (var i in Ext.prototype){
+			prop = Ext.prototype[i];
+			if (is.fn(prop) && prop.extend){
+				if (i === "constructor")
+					continue;
+
+				// do we need to install here?
+					// maybe prototype.set({i: prop.extend()}) --> set.Sub
+				if (!Ext.prototype.hasOwnProperty(i))
+					Ext.prototype[i] = prop.extend();
+			}
+		}
 	},
 	createConstructor: function(name){
 		return createConstructor(name);
