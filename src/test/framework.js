@@ -210,7 +210,7 @@ var Block = Base.extend({
 		childView.$el.appendTo(this.$children);
 	},
 	track: function(){
-		if (this.runCount > 20){
+		if (this.runCount > 100){
 			console.error("Burnout.");
 			throw "Burnout!!!"
 		}

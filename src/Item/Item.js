@@ -8,47 +8,39 @@ var is = require("../is");
 var Item = module.exports = View.extend({
 	name: "Item",
 	addClass: "item flex pad-children",
-	Icon: Icon,
-	icon: "folder",
-	active: true,
 	set: {
 		other: function(item, val){
 			item.label.set(val);
 			item.active = true;
 		}
 	},
-	inst: function(){
-		this.icon = new this.Icon({
-			// defaults
-			type: "folder",
-			autoRender: false,
-			// parent: this
-		});
-
-		this.value = new View({
-			autoRender: false,
-			active: false,
-			addClass: "value",
-			set: {
-				other: function(view, value){
-					view.content = value;
-					view.active = true;
-				}
+	Icon: Icon.extend({
+		name: "Icon",
+		autoRender: false,
+		type: "folder"
+	}),
+	Value: View.extend({
+		name: "Value",
+		autoRender: false,
+		active: false,
+		addClass: "value",
+		set: {
+			other: function(view, value){
+				view.content = value;
+				view.active = true;
 			}
-		});
-
-		this.label = new View({
-			autoRender: false,
-			addClass: "label",
-			content: "Item",
-			set: {
-				other: function(view, value){
-					view.content = value;
-					view.active = true;
-				}
-			}
-		});
-	},
+		}
+	}),
+	Label: View.extend({
+		name: "Label",
+		autoRender: false,
+		addClass: "label",
+		content: "Item",
+		set: { other: function(label, value){
+			label.content = value;
+			label.active = true;
+		} }
+	}),
 	content: function(){
 		this.icon.render();
 		this.label.render();

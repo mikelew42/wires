@@ -6,6 +6,7 @@ var Icon = module.exports = View.extend({
 	name: "Icon",
 	tag: "i",
 	addClass: "icon fa fa-fw",
+	// autoRender: false,
 	set: {
 		str: function(icon, type){
 			icon.type(type);

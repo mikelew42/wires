@@ -6,7 +6,8 @@ var events = require("events");
 var track = require("../track/track");
 var createConstructor = require("./createConstructor");
 var isExtensionOf = require("../Base/isExtensionOf");
-
+var inst = require("./inst");
+var setup = require("./setup");
 
 var Base3 = createConstructor("Base3");
 track(Base3);
@@ -15,11 +16,13 @@ track(Base3.prototype);
 Base3.assign({
 	Extend: Extend,
 	extend: new Extend().fn, // this could be autoInstantiated?
-	isExtensionOf: isExtensionOf
+	isExtensionOf: isExtensionOf,
+	setup: setup
 }, events.prototype); // .on, .emit, etc. .extend will clobber the ._events
 
 Base3.prototype.assign({
 	create: create,
+	inst: inst,
 	set: new Set().fn, // not a true Sub module (not autoInstantiated per instance)
 	init: function(){}
 });
