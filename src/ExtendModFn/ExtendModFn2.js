@@ -22,7 +22,7 @@ var ExtendModFn2 = ExtendModFn.extend({
 
 	},
 	recursiveExtend: function(Ext, Base, args){
-		var arg, propValue, setter;
+		var arg, propValue, setter, name;
 		// allow multiple objects
 		for (var i = 0; i < args.length; i++){
 			arg = args[i];
@@ -30,12 +30,12 @@ var ExtendModFn2 = ExtendModFn.extend({
 			for (var propName in arg){
 				propValue = arg[propName];
 				// if the prototype[prop] is a Sub class, and the incoming property is an object, then pass that obj to extend, and replace the prototype[prop] with the new class
-				if (is.fn(Ext.prototype[propName]) && Ext.prototype[propName].extend && is.obj(propValue) ){
+				if (is.Class(Ext.prototype[propName]) && !is.Class(propValue) ){
 					// console.log("recursiveExtending");
 					if (!propValue.name)
-						propValue.name = Ext.prototype[propName].name;
+						name = Ext.prototype[propName].name;
 					Ext.prototype[propName] = 
-						Ext.prototype[propName].extend(propValue);
+						Ext.prototype[propName].extend({name: propValue.name || name}, propValue);
 				} else {
 					// set it
 					setter = {};

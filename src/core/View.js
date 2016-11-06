@@ -3,7 +3,7 @@ var Base3 = require("../Base3/Base3");
 var track = require("../track/track");
 var is = require("../is");
 var $ = require("jquery");
-var Extend = require("../ExtendModFn/ExtendModFn");
+var Property = require("../Property/Property");
 
 var View = module.exports = Base3.extend({
 	name: "View",
@@ -43,10 +43,6 @@ var View = module.exports = Base3.extend({
 		if (this.$container) // $container could be a view with aliased insertMethod
 			this.$container[this.insertMethod](this.$el);
 	},
-	add: function(child){
-		this.children.push(child);
-		child.$el.appendTo(this.$el);
-	},
 	render: function(){
 		// this.render_el();
 		if (this.active){
@@ -64,11 +60,24 @@ var View = module.exports = Base3.extend({
 			View.captor.add(this);
 		}
 	},
+	add_content: function(child){
+		this.children.push(child);
+		child.$el.appendTo(this.$el);
+	},
+	// this.capture(this.content);
+	capture: function(methodName){
+		var previousAdd = this.add;
+		this.add = this["add_"+methodName];
+		this.become_captor();
+		this[methodName]();
+		this.restore_captor();
+		this.add = previousAdd;
+	},
 	render_content: function(){
 		if (!is.def(this.content))
 			return false;
 		if (is.fn(this.content))
-			this.capture_content();
+			this.capture("content");
 		else if (is.str(this.content))
 			this.$el.append(this.content).addClass("str-content");
 		else if (is.num(this.content))

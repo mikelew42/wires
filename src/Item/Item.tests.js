@@ -6,10 +6,12 @@ var $ = require("jquery");
 var View = require("../core/View");
 
 var Item = require("./Item");
-	console.log(View.prototype.$el.attr("class"))
+	// console.log(View.prototype.$el.attr("class"))
+
+var ExpandableItem = require("./ExpandableItem");
 
 var Icon = require("./Icon");
-	console.log(View.prototype.$el.attr("class"))
+	// console.log(View.prototype.$el.attr("class"))
 
 $(function(){
 
@@ -21,7 +23,7 @@ test("Icon", function(){
 	Icon("beer");
 	Icon("plane");
 	
-	console.log(View.prototype.$el.attr("class"))
+	// console.log(View.prototype.$el.attr("class"))
 
 	View("hello world");
 
@@ -51,16 +53,19 @@ test("Item", function(){
 
 	test("extend if you want default: no icon", function(){
 		var Item2 = Item.extend({
-			icon: false
+			Icon: false
 		});
 
 		Item2();
-		Item2({
-			icon: "folder"
-		})
-		Item2({
-			value: 456789
-		})
+		// Item2({
+		// 	icon: false
+		// });
+		// Item2({
+		// 	icon: "folder"
+		// })
+		// Item2({
+		// 	value: 456789
+		// })
 	});
 
 	test("with value", function(){
@@ -95,6 +100,30 @@ test("Item", function(){
 			icon: false,
 			value: "Yee haw"
 		})
+	});
+
+	test("ExpandableItem", function(){
+		ExpandableItem();		
+		ExpandableItem({
+			icon: "circle"
+		});
+		ExpandableItem({
+			icon: "circle",
+			label: "This is an expandable icon item"
+		});
+		ExpandableItem({
+			icon: "cube",
+			label: "Expandable icon value item",
+			value: ExpandableItem.name,
+			content: function(){
+				Item();
+				Item({
+					icon: "beer",
+					label: "Beeer!"
+				})
+			}
+		});
+
 	});
 
 });

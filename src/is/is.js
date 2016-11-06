@@ -33,7 +33,7 @@ var is = {
 		return typeof value !== 'object' && !is.fn(value); // null, NaN, or other non-referential values?
 	},
 	Class: function(value){
-		return value && value.prototype && value.prototype.create;
+		return is.fn(value) && value.prototype && value.extend;
 	}
 };
 module.exports = is;

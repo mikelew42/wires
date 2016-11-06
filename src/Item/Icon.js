@@ -10,7 +10,6 @@ var Icon = module.exports = View.extend({
 	set: {
 		str: function(icon, type){
 			icon.type(type);
-			icon.active = true;
 		},
 		bool: function(icon, bool){
 			if (bool)
@@ -20,6 +19,7 @@ var Icon = module.exports = View.extend({
 		}
 	},
 	type: function(type){
+		this.active = true;
 		this.$el.removeClass("fa-" + this._type).addClass("fa-" + type);
 		this._type = type;
 		return this;

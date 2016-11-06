@@ -59,6 +59,25 @@
 	& > .value {
 		margin-left: auto;
 	}
+
+	&.expandable {
+		display: block;
+		& > .preview {
+			padding: 0;
+			display: flex;
+			& > * {
+				.pad-self()
+			}
+			& > .value {
+				margin-left: auto;
+			}
+		}
+		& > .content {
+			.item {
+				margin-bottom: 5px;
+			}
+		}
+	}
 }
 .pad-self, .pad-children > * {
 	padding: 1em;

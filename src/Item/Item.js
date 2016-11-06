@@ -18,30 +18,21 @@ var Item = module.exports = View.extend({
 	Icon: Icon.extend({
 		name: "Icon",
 		autoRender: false,
+		active: true,
 		type: "folder"
 	}),
 	Value: View.extend({
 		name: "Value",
 		autoRender: false,
 		active: false,
-		addClass: "value",
-		set: {
-			other: function(view, value){
-				view.content = value;
-				view.active = true;
-			}
-		}
+		addClass: "value"
 	}),
 	Label: View.extend({
 		name: "Label",
 		autoRender: false,
 		addClass: "label",
 		active: true,
-		content: "Item",
-		set: { other: function(label, value){
-			label.content = value;
-			label.active = true;
-		} }
+		content: "Item"
 	}),
 	content: function(){
 		this.icon.render();
