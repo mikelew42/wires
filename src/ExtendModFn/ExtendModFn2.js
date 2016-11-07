@@ -26,22 +26,26 @@ var ExtendModFn2 = ExtendModFn.extend({
 		// allow multiple objects
 		for (var i = 0; i < args.length; i++){
 			arg = args[i];
-			// loop over each property
-			for (var propName in arg){
-				propValue = arg[propName];
-				// if the prototype[prop] is a Sub class, and the incoming property is an object, then pass that obj to extend, and replace the prototype[prop] with the new class
-				if (is.Class(Ext.prototype[propName]) && !is.Class(propValue) ){
-					// console.log("recursiveExtending");
-					if (!propValue.name)
-						name = Ext.prototype[propName].name;
-					Ext.prototype[propName] = 
-						Ext.prototype[propName].extend({name: propValue.name || name}, propValue);
-				} else {
-					// set it
-					setter = {};
-					setter[propName] = propValue;
-					Ext.prototype.set(setter);
+			if (is.obj(arg)){
+				// loop over each property
+				for (var propName in arg){
+					propValue = arg[propName];
+					// if the prototype[prop] is a Sub class, and the incoming property is an object, then pass that obj to extend, and replace the prototype[prop] with the new class
+					if (is.Class(Ext.prototype[propName]) && !is.Class(propValue) ){
+						// console.log("recursiveExtending");
+						if (!propValue.name)
+							name = Ext.prototype[propName].name;
+						Ext.prototype[propName] = 
+							Ext.prototype[propName].extend({name: propValue.name || name}, propValue);
+					} else {
+						// set it
+						setter = {};
+						setter[propName] = propValue;
+						Ext.prototype.set(setter);
+					}
 				}
+			} else {
+				Ext.prototype.set(arg);
 			}
 		}
 		return this;

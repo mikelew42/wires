@@ -3,7 +3,7 @@ var Base = require("../Base");
 var router = require("../router");
 var hash = require("../utils/utils").sanitizeString;
 
-var View = require("../core/View");
+exports.View = require("../core/View");
 
 var $ = require("jquery");
 
@@ -196,13 +196,13 @@ var Block = Base.extend({
 		this.previous = current;
 		current = this;
 
-		this.previous_view_captor = View.captor;
-		View.captor = this;
+		this.previous_view_captor = exports.View.captor;
+		exports.View.captor = this;
 	},
 	restore: function(){
 		current = this.previous;
 
-		View.captor = this.previous_view_captor;
+		exports.View.captor = this.previous_view_captor;
 	},
 	// conforming to View.captor.add() api...
 	add: function(childView){
