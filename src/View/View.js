@@ -11,7 +11,7 @@ var View = module.exports = Base3.extend({
 	name: "View",
 	tag: "div",
 	capturable: true,
-	active: false,
+	active: true,
 	set: {
 		other: function(view, val){
 			view.content = val;

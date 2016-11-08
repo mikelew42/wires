@@ -1,6 +1,5 @@
 var Base = require("../Base");
-var Link = require("./Link");
-var history = require("history").createBrowserHistory();
+var Link = require("../Page/Link");
 
 var Route = module.exports = Base.extend({
 	name: "Route",

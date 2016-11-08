@@ -27,7 +27,7 @@ var pageTree = function(req_ctx){
 		} else {
 
 		}
-		tree[key] = 
+		// tree[key] = 
 	}
 };
 
@@ -38,7 +38,11 @@ var App = Base3.extend({
 	},
 	init_app: function(){
 		this.register_global_module();
+		this.init_router();
 		this.load_pages();
+	},
+	init_router: function(){
+		this.router = require("../router");
 	},
 	register_global_module: function(){
 		if (!registered_global_module){
@@ -48,7 +52,7 @@ var App = Base3.extend({
 	},
 	load_pages: function(){
 		var pages = require.context("../", true, /\.page\.js$/);
-
+		console.log(pages.keys());
 		this.require_all(pages);
 	},
 	require_all: function(req_ctx){

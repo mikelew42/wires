@@ -2,6 +2,10 @@
 require("./test");
 var App = require("./App/App");
 
+console.log("yerp?");
+console.log(require("test"));
+console.log(require("test2"));
+
 var app = new App({
 	// create: function(){
 	// 	this._init(); // before
