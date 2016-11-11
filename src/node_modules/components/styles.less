@@ -1,0 +1,39 @@
+.tabs {
+	.tabs-tabs {
+		display: flex;
+		.tab-tab {
+			cursor: pointer;
+		}
+	}
+	.tabs-content {
+		.tab-content {
+
+		}
+	}
+}
+
+.tabs.outlines, .outlines .tabs {
+	border: 1px solid black;
+
+	.tabs-tabs {
+		border-bottom: 1px solid black;
+		display: flex;
+		.tab-tab {
+			padding: 8px 13px;
+			cursor: pointer;
+			background: #ccc;
+			margin-bottom: -1px;
+			border-bottom: 1px solid black;
+			&.active {
+				border-bottom: 1px solid #fff;
+				background: #fff;
+				font-weight: bold;
+			}
+		}
+	}
+	.tabs-content {
+		.tab-content {
+
+		}
+	}
+}
