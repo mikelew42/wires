@@ -18,14 +18,14 @@ module.exports = {
   devtool: 'inline-source-map',
   entry: entry,
   output: {
-    path: './build/',
+    path: './src/root/',
     filename: '[name].bundle.js'
   },
   module: {
     loaders: [
-      { test: /\.css$/, exclude: /\.useable\.css$/, loader: "style!css" },
-      { test: /\.useable\.css$/, loader: "style/useable!css" },
-      { test: /\.less$/, loader: "style!css!less" },
+      // { test: /\.css$/, exclude: /\.useable\.css$/, loader: "style!css" },
+      // { test: /\.useable\.css$/, loader: "style/useable!css" },
+      // { test: /\.less$/, loader: "style!css!less" },
       { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "url-loader?limit=20000&minetype=application/font-woff&name=/[hash].[ext]" },
       { test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: "file-loader" }
     ]

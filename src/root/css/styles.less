@@ -1,0 +1,89 @@
+* { margin: 0; padding: 0; }
+
+p, h1, h2, h3 {
+	margin-bottom: 1em;
+}
+
+.x {
+	color: orange;
+}
+
+.nav {
+	display: flex;
+	flex-wrap: wrap;
+	margin-bottom: 5px;
+	padding: 5px 10px;
+	background: #eee;
+	> a {
+		margin-right: 5px;
+		background: #fff;
+		padding: 3px 6px;
+		margin-bottom: 3px;
+	}
+}
+
+#docroot {
+	background: #eee;
+	overflow:hidden;
+}
+
+.page {
+	background: #fff;
+}
+
+.wires {
+	&, & * {
+		border: 1px solid black;
+		padding: 1px;
+	}
+}
+
+.row {
+	display: flex;
+	margin-bottom: 2em;
+	> .col {
+		box-sizing: border-box;
+	}
+	> .col-50 {
+		width: 50%;
+	}
+	> .col-33 {
+		width: 33.332%;
+	}
+	> .col-66 {
+		width: 66.666%;
+	}
+	/* Use .break instead of media query, and allow JS to add it */
+	@media (max-width: 800px){
+		& {
+			display: block;
+		}
+		> .col {
+			width: auto !important;	
+		}
+	}
+}
+
+.align-right {
+	text-align: right;
+}
+
+.page-style-tests {
+	background: #333;
+	color: #eee;
+	.header1 {
+		background: #333;
+		.left {
+			color: hsla(30,84%,56%,1);
+			padding: 1em;
+		}
+		.right {
+			color: #ddd;
+			padding: 1em;
+		}
+	}
+}
+
+
+@import "test.less";
+@import "item.less";

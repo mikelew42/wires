@@ -1,6 +1,6 @@
 require("./Lorem");
 // require("test");
-require("./styles.less");
+// require("./styles.less");
 var Application = require("Application");
 
 
@@ -15,7 +15,7 @@ var app = new Application({
 	},
 	load_tests: function(){
 		var app = this;
-		var tests = require.context("./", true, /\.test\.js$/);
+		var tests = require.context("./", true, /\.tests\.js$/);
 
 		this.test_routes(tests);
 
@@ -24,6 +24,7 @@ var app = new Application({
 			label: "Tests"
 		}).then(function(){
 			app.require_all(tests);
+			app.router.render_nav();
 		}));
 	},
 	test_routes: function(requireContext) {

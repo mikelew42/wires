@@ -5,7 +5,7 @@
   "main": "src/index.entry.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "webpack-dev-server --inline  --history-api-fallback --content-base build/"
+    "server": "webpack-dev-server --inline  --history-api-fallback --content-base src/root/"
   },
   "author": "",
   "devDependencies": {
@@ -14,9 +14,14 @@
     "font-awesome": "^4.6.3",
     "font-awesome-webpack": "0.0.4",
     "globule": "^1.0.0",
+    "gulp": "^3.9.1",
+    "gulp-less": "^3.3.0",
+    "gulp-less-sourcemap": "^1.4.3",
+    "gulp-livereload": "^3.8.1",
     "jquery": "^3.1.0",
     "less": "^2.7.1",
     "less-loader": "^2.2.3",
+    "open": "0.0.5",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
     "webpack": "^1.13.2"
