@@ -1,0 +1,20 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "hosting": {
+    "public": "src/root",
+    "ignore": [
+      "**/*.js",
+      "!**/*.bundle.js",
+      "**/node_modules/**",
+      "**/*.less"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}

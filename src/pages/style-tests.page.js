@@ -1,5 +1,7 @@
 var app = require("app");
 
+var Item = require("Item/ExpandableItem");
+
 var View = app.View, Div = View.Div, p = View.p, h1 = View.h1, h2 = View.h2, h3 = View.h3, Row = View.Row, Col = View.Col, Col50 = View.Col50, Col33 = View.Col33, Col66 = View.Col66;
 
 app.Page({
@@ -9,12 +11,30 @@ app.Page({
 	addClass: "page-style-tests",
 	content: function(){
 		this.header();
+		this.boxes();
 		this.two();
 		this.three();
 		this.test();
 		this.test2();
 		this.test2("200px");
 		this.test2("400px");
+	},
+	boxes: function(){
+		Div("boxes", function(){
+			this.css({
+				background: "white",
+				color: "black",
+				padding: "1em"
+			});
+			this.append("yep");
+			Item({
+				icon: "beer",
+				label: "An expandable item",
+				content: function(){
+					this.append("yep");
+				}
+			})
+		});
 	},
 	header: function(){
 		this.$header = View({

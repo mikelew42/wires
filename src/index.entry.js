@@ -29,6 +29,7 @@ var app = new Application({
 	},
 	test_routes: function(requireContext) {
 		var keys = requireContext.keys(), key;
+		console.log(keys);
 		for (var i = 0; i < keys.length; i++){
 			key = keys[i].replace("./", "").replace(".tests.js", "");
 
@@ -40,6 +41,7 @@ var app = new Application({
 				matchBeginning: true
 			}).then(function(){
 				// console.clear();
+				console.log("require " + this.key);
 				requireContext(this.key);
 			}));
 		}
