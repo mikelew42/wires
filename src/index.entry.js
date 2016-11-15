@@ -29,7 +29,7 @@ var app = new Application({
 	},
 	test_routes: function(requireContext) {
 		var keys = requireContext.keys(), key;
-		console.log(keys);
+		// console.log(keys);
 		for (var i = 0; i < keys.length; i++){
 			key = keys[i].replace("./", "").replace(".tests.js", "");
 
