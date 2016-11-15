@@ -34,10 +34,10 @@ gulp.task('default', function(){
 
 	gulp.watch('src/**/*.less').on('change', function(file){
 		console.log('less changedd', file);
-		return gulp.src(file.path)
-			.pipe(less({
-				paths: [file.path]
-			}))
-			.pipe(gulp.dest(path.dirname(file.path)));
+			return gulp.src("src/root/css/styles.main.less")
+				.pipe(less({
+					paths: "src"
+				}))
+				.pipe(gulp.dest(path.dirname(file.path)));
 	});
 });
