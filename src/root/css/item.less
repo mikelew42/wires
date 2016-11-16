@@ -50,7 +50,7 @@
 }
 
 
-.item {
+.item.wires {
 	margin-bottom: 1em;
 	&, * {
 		border: 1px solid black;
@@ -84,37 +84,36 @@
 }
 
 
-.light {
+.light .item, .item.light {
 	font-family: verdana;
 	font-size: 13px;
-	.item {
-		margin-bottom: 5px;
-		background: #fafafa;
-		.icon {
-			padding-top: 7px;
-			padding-bottom: 5px;
-			background: #f0f0f0;
+	margin-bottom: 5px;
+	background: #fafafa;
+	> .icon {
+		padding-top: 7px;
+		padding-bottom: 5px;
+		background: #f0f0f0;
+	}
+	> .value {
+		background: #f0f0f0;
+		&.number {
+			color: green;
 		}
-		.value {
-			background: #f0f0f0;
-			&.number {
-				color: green;
-			}
-			&.string {
-				color: blue;
-			}
-			&.boolean {
-				color: red;
-			}
+		&.string {
+			color: blue;
 		}
-		&.fn-item {
-			.fn-arg {
-				font-style: italic;
-				color: #666;
-			}
+		&.boolean {
+			color: red;
 		}
 	}
-	.pad-self, .pad-children > * {
+	&.fn-item {
+		> .fn-arg {
+			font-style: italic;
+			color: #666;
+		}
+	}
+
+	&.pad-self, &.pad-children > * {
 		padding: 6px 10px;
 	}
 }

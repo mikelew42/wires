@@ -188,67 +188,84 @@ h3 {
   font-weight: bold;
   color: purple;
 }
-.item {
+.item.wires {
   margin-bottom: 1em;
 }
-.item,
-.item * {
+.item.wires,
+.item.wires * {
   border: 1px solid black;
 }
-.item > .value {
+.item.wires > .value {
   margin-left: auto;
 }
-.item.expandable {
+.item.wires.expandable {
   display: block;
 }
-.item.expandable > .preview {
+.item.wires.expandable > .preview {
   padding: 0;
   display: flex;
 }
-.item.expandable > .preview > * {
+.item.wires.expandable > .preview > * {
   padding: 1em;
 }
-.item.expandable > .preview > .value {
+.item.wires.expandable > .preview > .value {
   margin-left: auto;
 }
-.item.expandable > .content .item {
+.item.wires.expandable > .content .item {
   margin-bottom: 5px;
 }
 .pad-self,
 .pad-children > * {
   padding: 1em;
 }
-.light {
+.light .item,
+.item.light {
   font-family: verdana;
   font-size: 13px;
-}
-.light .item {
   margin-bottom: 5px;
   background: #fafafa;
 }
-.light .item .icon {
+.light .item > .icon,
+.item.light > .icon {
   padding-top: 7px;
   padding-bottom: 5px;
   background: #f0f0f0;
 }
-.light .item .value {
+.light .item > .value,
+.item.light > .value {
   background: #f0f0f0;
 }
-.light .item .value.number {
+.light .item > .value.number,
+.item.light > .value.number {
   color: green;
 }
-.light .item .value.string {
+.light .item > .value.string,
+.item.light > .value.string {
   color: blue;
 }
-.light .item .value.boolean {
+.light .item > .value.boolean,
+.item.light > .value.boolean {
   color: red;
 }
-.light .item.fn-item .fn-arg {
+.light .item.fn-item > .fn-arg,
+.item.light.fn-item > .fn-arg {
   font-style: italic;
   color: #666;
 }
-.light .pad-self,
-.light .pad-children > * {
+.light .item.pad-self,
+.item.light.pad-self,
+.light .item.pad-children > *,
+.item.light.pad-children > * {
   padding: 6px 10px;
 }
-/*# sourceMappingURL=styles.css.map */
+.inf-cols {
+  display: flex;
+  border: 3px solid #444;
+  padding: 2px;
+}
+.inf-cols > .list,
+.inf-cols > .panel {
+  border: 2px solid #555;
+  padding: 1px;
+}
+/*# sourceMappingURL=styles.main.css.map */

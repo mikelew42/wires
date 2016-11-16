@@ -6,22 +6,24 @@ var View = app.View, Div = View.Div, p = View.p, h1 = View.h1, h2 = View.h2, h3 
 
 var InfCols = Row.extend({
 	addClass: "inf-cols",
-	launch: function($el){
-		console.log("cols.launch");
-		this.current.remove();
-		this.current = $el;
+	launch: function($el, hide){
+		// console.log("cols.launch");
+		this.current && hide && this.current.hide();
+		this.current = $el.show();
 		this.append($el);
 	}
 });
 
 var ListItem = Item.extend({
-	value: ">",
-	icon: "circle",
+	Value: ">", // must extend Class, not instance, when extending parent Class
+	addClass: "light",
+	hideCurrent: true,
 	inst: function(){
 		this.constructor.base.prototype.inst.call(this);
 		this.panel = View({
 			name: "ListItemPanel",
-			addClass: "panel"
+			addClass: "panel",
+			autoRender: false
 		});
 	},
 	render: function(){
@@ -33,7 +35,8 @@ var ListItem = Item.extend({
 		this.click(this.launch.bind(this));
 	},
 	launch: function(){
-		this.cols.launch(this.panel.$el);
+		this.panel.render();
+		this.cols.launch(this.panel.$el, this.hideCurrent);
 	}
 });
 
@@ -45,22 +48,95 @@ app.Page({
 	content: function(){
 		InfCols(function(){
 			var cols = this;
-			ListItem({
-				cols: cols,
-				label: "Test1 - click me",
-				panel: function(){
-					View("This is the panel1 contents");
-				}
-			});
+			Div("list", function(){
+				ListItem({
+					cols: cols,
+					label: "Test1 - click me",
+					panel: function(){
+						View("This is the panel1 contents");
+					}
+				});
 
-			ListItem({
-				cols: cols,
-				label: "Test2 - click me",
-				panel: function(){
-					View("This is the panel2 contents");
+				ListItem({
+					cols: cols,
+					label: "Test2 - click me",
+					panel: function(){
+						View("This is the panel2 contents");
 
-					// InfCols(function(){});
-				}
+						InfCols(function(){
+							var cols2 = this;
+
+							Div("list", function(){
+								ListItem({
+									cols: cols2,
+									label: "Test1 - click me",
+									panel: function(){
+										View("This is the panel1 contents");
+									}
+								});
+								ListItem({
+									cols: cols2,
+									label: "Test2 - click me",
+									panel: function(){
+										View("This is the panel2 contents");
+									}
+								});
+								ListItem({
+									cols: cols2,
+									label: "Test3 - click me",
+									panel: function(){
+										View("This is the panel3 contents");
+									}
+								});
+							});
+						});
+					}
+				});
+
+				ListItem({
+					cols: cols,
+					label: "Test3 - click me",
+					panel: function(){
+						View("This is the panel3 contents");
+
+						InfCols(function(){
+							var cols2 = this;
+
+							Div("list", function(){
+								ListItem({
+									cols: cols,
+									label: "Test1 - click me",
+									panel: function(){
+										View("This is the panel1 contents");
+									},
+									hideCurrent: false
+								});
+								ListItem({
+									cols: cols,
+									label: "Test2 - click me",
+									panel: function(){
+										View("This is the panel2 contents");
+									}
+								});
+								ListItem({
+									cols: cols,
+									label: "Test3 - click me",
+									panel: function(){
+										View("This is the panel3 contents");
+									}
+								});
+							});
+						});
+					}
+				});	
+
+				ListItem({
+					cols: cols,
+					label: "Test4 - click me",
+					panel: function(){
+						View("This is the panel4 contents");
+					}
+				});
 			});
 		});
 	}
