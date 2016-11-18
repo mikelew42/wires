@@ -4,6 +4,10 @@ var Item = require("Item");
 
 var View = app.View, Div = View.Div, p = View.p, h1 = View.h1, h2 = View.h2, h3 = View.h3, Row = View.Row, Col = View.Col, Col50 = View.Col50, Col33 = View.Col33, Col66 = View.Col66;
 
+require("./test.less");
+require("./test2.less");
+
+
 var InfCols = Row.extend({
 	addClass: "inf-cols",
 	launch: function($el, hide){
