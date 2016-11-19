@@ -5,6 +5,7 @@ var Application = require("Application");
 
 
 var app = new Application({
+	name: "app",
 	load_pages: function(){
 		var pages = require.context("./root/", true, /\.page\.js$/);
 		// console.log("pages", pages.keys());

@@ -3,6 +3,8 @@ var Page = require("Page/Page2");
 var View = require("View");
 var Div = require("View/Div");
 
+require("./main.less");
+
 app.home = Page({
 	app: app,
 	title: "lew42.com",
