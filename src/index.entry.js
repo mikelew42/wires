@@ -3,7 +3,6 @@ require("./Lorem");
 // require("./styles.less");
 var Application = require("Application");
 
-
 var app = new Application({
 	name: "app",
 	load_pages: function(){
@@ -42,10 +41,12 @@ var app = new Application({
 				matchBeginning: true
 			}).then(function(){
 				// console.clear();
-				console.log("require " + this.key);
+				// console.log("require " + this.key);
 				requireContext(this.key);
 			}));
 		}
 		// keys.forEach(context); 
 	}
 });
+
+app.start_time = Date.now();
