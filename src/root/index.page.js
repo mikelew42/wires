@@ -5,7 +5,7 @@ var Div = require("View/Div");
 
 require("./main.less");
 
-app.home = Page({
+app.home = app.Page({
 	app: app,
 	title: "lew42.com",
 	pathname: "/",

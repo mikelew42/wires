@@ -1,9 +1,13 @@
-require("./Lorem");
+// require("./Lorem");
 // require("test");
 // require("./styles.less");
+
+// require("log42/logger2.tests.js");
+
 var Application = require("Application");
 
 var app = new Application({
+	log: true,
 	name: "app",
 	load_pages: function(){
 		var pages = require.context("./root/", true, /\.page\.js$/);
