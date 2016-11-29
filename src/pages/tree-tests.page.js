@@ -23,7 +23,7 @@ var ListItem = Item.extend({
 	addClass: "light",
 	hideCurrent: true,
 	inst: function(){
-		this.constructor.base.prototype.inst.call(this);
+		// this.constructor.base.prototype.inst.call(this);
 		this.panel = View({
 			name: "ListItemPanel",
 			addClass: "panel",
