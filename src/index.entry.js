@@ -1,13 +1,29 @@
-// require("./Lorem");
+require("./Lorem");
 // require("test");
 // require("./styles.less");
 
 // require("log42/logger2.tests.js");
+var logger = require("log42");
+// logger.on();
+var log = logger();
+
+var $ = require("jquery");
+$(function(){
+	log.groupc("document.ready");
+	$(function(){
+		$(function(){
+			log.end();
+			console.info("time to ready", Date.now() - app.start_time);
+		});
+	})
+
+});
+
 
 var Application = require("Application");
 
 var app = new Application({
-	log: true,
+	// log: true,
 	name: "app",
 	load_pages: function(){
 		var pages = require.context("./root/", true, /\.page\.js$/);
