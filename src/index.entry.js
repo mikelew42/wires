@@ -19,8 +19,8 @@ $(function(){
 
 });
 
-
 var Application = require("Application");
+var App = require("app42");
 
 var app = new Application({
 	// log: true,
@@ -64,6 +64,44 @@ var app = new Application({
 				// console.log("require " + this.key);
 				requireContext(this.key);
 			}));
+		}
+		// keys.forEach(context); 
+	}
+});
+
+var test = require("test42");
+
+var app2 = new App({
+	// log: true,
+	name: "app2",
+	load_tests: function(){
+		var app2 = this;
+		var tests = require.context("./", true, /\.tests\.js$/);
+
+		this.test_routes(tests);
+
+		this.router.add("test").then(function(){
+			app2.require_all(tests);
+			// re-render nav?
+		});
+	},
+	test_routes: function(requireContext) {
+		var keys = requireContext.keys(), key;
+		console.log(keys);
+		for (var i = 0; i < keys.length; i++){
+			key = keys[i].replace("./", "").replace(".tests.js", "");
+
+			this.router.add({
+				name: key,
+				label: key,
+				key: keys[i],
+				allowDefault: true,
+				matchBeginning: true
+			}).then(function(){
+				// console.clear();
+				// console.log("require " + this.key);
+				requireContext(this.key);
+			});
 		}
 		// keys.forEach(context); 
 	}
