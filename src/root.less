@@ -1,0 +1,26 @@
+.global-router {
+	& > .preview > .item {
+		background: #ccc;
+		margin-bottom: 0;
+		& > .icon {
+			background: #bbb;
+		}
+	}
+	& > .contents {
+		background: #ddd;
+		padding: 5px 5px 15px 5px;
+		display: flex;
+		flex-wrap: wrap;
+		&  > .route  {
+			& > .header {
+				& > .item {
+					font-size: 1em;
+				}
+			}
+		}
+	}
+}
+
+.route .label {
+	flex-grow: 1
+}

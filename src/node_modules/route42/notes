@@ -1,0 +1,4 @@
+Route:
+- parse path
+- if path has multiple parts,
+- setup self as the last part, and then bridge the gap
