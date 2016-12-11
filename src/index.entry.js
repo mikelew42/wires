@@ -2,6 +2,9 @@ require("./Lorem");
 // require("test");
 // require("./styles.less");
 
+// for tinkering
+window.$ = require("jquery");
+
 require("./root.less");
 
 // require("log42/logger2.tests.js");
