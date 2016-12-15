@@ -1,0 +1,112 @@
+.flex {
+  display: flex;
+}
+.expandable > .preview {
+  cursor: pointer;
+}
+.value-item {
+  display: flex;
+}
+.value-item .value {
+  margin-left: auto;
+}
+.icon-item {
+  display: flex;
+}
+.icon-item .icon {
+  display: block;
+}
+.icon-item.expandable {
+  display: block;
+}
+.icon-item.expandable .preview {
+  display: flex;
+}
+.wrapper {
+  padding: 0;
+}
+.wrapper > * {
+  padding: 1em;
+}
+.value.num-content {
+  font-weight: bold;
+  color: blue;
+}
+.value.str-content {
+  color: red;
+}
+.value.bool-content {
+  font-weight: bold;
+  color: purple;
+}
+.item.wires {
+  margin-bottom: 1em;
+}
+.item.wires,
+.item.wires * {
+  border: 1px solid black;
+}
+.item.wires > .value {
+  margin-left: auto;
+}
+.item.wires.expandable {
+  display: block;
+}
+.item.wires.expandable > .preview {
+  padding: 0;
+  display: flex;
+}
+.item.wires.expandable > .preview > * {
+  padding: 1em;
+}
+.item.wires.expandable > .preview > .value {
+  margin-left: auto;
+}
+.item.wires.expandable > .content .item {
+  margin-bottom: 5px;
+}
+.pad-self,
+.pad-children > * {
+  padding: 1em;
+}
+.light .item,
+.item.light {
+  font-family: verdana;
+  font-size: 13px;
+  margin-bottom: 5px;
+  background: #fafafa;
+}
+.light .item > .icon,
+.item.light > .icon {
+  padding-top: 7px;
+  padding-bottom: 5px;
+  background: #f0f0f0;
+}
+.light .item > .value,
+.item.light > .value {
+  background: #f0f0f0;
+}
+.light .item > .value.number,
+.item.light > .value.number {
+  color: green;
+}
+.light .item > .value.string,
+.item.light > .value.string {
+  color: blue;
+}
+.light .item > .value.boolean,
+.item.light > .value.boolean {
+  color: red;
+}
+.light .item.fn-item > .fn-arg,
+.item.light.fn-item > .fn-arg {
+  font-style: italic;
+  color: #666;
+}
+.light .item.pad-self,
+.item.light.pad-self,
+.light .item.pad-children > *,
+.item.light.pad-children > * {
+  padding: 6px 10px;
+}
+/*# sourceMappingURL=item.css.map */

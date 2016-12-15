@@ -1,0 +1,13 @@
+Option:  Display UI? --> Wait until document.ready to run tests.
+	- No need to wrap tests in doc.ready handler...
+	- Just queue tests internally
+
+
+Live running: 
+- deactivate (remove old view, and... cleanup?)
+- clear console
+- rerun selected test(s)
+
+How do we render back into the right container?  Originally, it's done via an app-level append to body.  I suppose that would work for now..
+
+I need major overhauls of this whole system...

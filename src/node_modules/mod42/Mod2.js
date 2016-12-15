@@ -1,0 +1,173 @@
+var SetMfn = require("./SetMfn");
+var logger = require("log42");
+var is = require("is");
+var Mod1 = require("./Mod1");
+var Mod4 = require("./Mod4");
+
+var Method = require("log42/Method");
+var Property = require("Property");
+
+var log = logger();
+
+log.groupc("Mod2.js");
+
+log.group("var set = SetMfn.make(...)");
+var set = Mod4.prototype.set.mfn.clone({
+	stdProp: function(mod, prop, value){
+		if (is.fn(value) && !is.Class(value))
+			this.wrapMethod(mod, prop, value);
+		else
+			// this.wrapProperty(mod, prop, value);
+			Mod4.prototype.set.mfn.stdProp.call(this, mod, prop, value);
+	},
+	Method: Method,
+	wrapMethod: function(mod, name, fn){
+		// console.group("attempting to wrap", name);
+		// console.log(mod);
+		var opts;
+		if (mod.methods && is.def(mod.methods[name])){
+			// console.info("found mod.methods."+name);
+			opts = mod.methods[name];
+		} else {
+			opts = this["method_" + name];
+		}
+		// console.log("opts", opts);
+		// console.log("mod.wrap", mod.wrap);
+		// console.log("mod.log.value", mod.log.value);
+		if (opts === false || mod.wrap === false || mod.log.value !== true){
+			mod[name] = fn.fn || fn;
+		} else {
+		// console.log("wrappingMethod", name, typeof fn);
+			opts = opts || {};
+			mod[name] = new this.Method({
+				name: name,
+				method: fn.fn || fn,
+			}, opts).wrapper();
+		}
+		// console.groupEnd();
+	},
+	Property: Property,
+	wrapProperty: function(mod, name, value){
+		new this.Property({
+			name: name,
+			parent: mod,
+			value: value
+		});
+	},
+	method__config: false,
+	method_extend: {
+		expand: false
+	},
+	props: {
+		methods: function(mod, prop, value){
+			this.methods(mod, value);
+		},
+		wrap: function(mod, prop, value){
+			if (value === false){
+				this.unwrap(mod);
+			}
+			this.stdProp(mod, prop, value);
+		}
+	},
+	rewrapAll: function(mod){
+		for (var i in mod){
+			if (["constructor", "base", "parent", "proto"].indexOf(i) > -1)
+				continue;
+
+			if (is.fn(mod[i]) && !is.Class(mod[i]))
+				this.wrapMethod(mod, i, mod[i]);
+		}
+	},
+	unwrap: function(mod){
+		for (var i in mod){
+			if (mod[i].wrapped)
+				mod[i] = mod[i].fn;
+		}
+	},
+	methods: function(mod, obj){
+		this.log("setting methods");
+		if (!mod.methods){
+			mod.methods = {};
+			this.methodsObj(mod, obj);
+		} else if (mod.hasOwnProperty("methods")){
+			this.methodsObj(mod, obj);
+		} else {
+			this.stdProp(mod, "methods", Object.create(mod.methods));
+			this.methodsObj(mod, obj);
+		}
+	},
+	methodsObj: function(mod, obj){
+		var methods = mod.methods;
+		for (var i in obj){
+			this.prop(methods, i, obj[i]);
+			if (mod[i]) // it might not be set yet
+				this.wrapMethod(mod, i, mod[i]);
+		}
+		return mod;
+	}
+}).fn;
+log.end();
+
+// console.log(set.mfn.props);
+// console.log(SetMfn.prototype.props);
+
+
+
+log.group("var Mod2 = Mod1.extend(...)");
+var Mod2 = module.exports = Mod4.extend({
+	name: "Mod2",
+	assign: {
+		set: set
+	},
+	methods: {
+		instantiate: {
+			expand: false
+		}
+	},
+	_config: function(o){
+		if (o && o.log){
+			this.log = o.log;
+			this.set.mfn.rewrapAll(this);
+			delete o.log;
+		}
+
+		// init log to global logger if in auto mode
+		// if (this.log && this.log.auto){
+		// 	// console.log("logger().value", logger().value);
+		// 	if (logger().enabled !== this.log.enabled){
+		// 		console.log("this.log.value", this.log.value);
+		// 		this.log = logger().enabled;
+		// 		console.log("this.log.value", this.log.value);
+		// 	}
+		// 	// console.log("this.log.value", this.log.value);
+		// }
+
+		// if (o && o.name){
+		// 	this.name = o.name;
+		// 	delete o.name;
+		// }
+	}
+}).assign({
+	set: set
+});
+
+// console.log(Mod2.prototype.set.mfn.stdProp.toString());
+
+// logger.install(Mod2.prototype);
+// logger.install(Mod2);
+
+Mod2.Sub = Mod2.extend({
+	name: "Sub",
+	setup: Mod4.Sub.prototype.setup
+})
+
+set.mfn.wrapMethod(Mod2, "extend", Mod2.extend);
+set.mfn.wrapMethod(Mod2, "set", Mod2.set);
+
+set.mfn.wrapMethod(Mod2.prototype, "instantiate", Mod2.prototype.instantiate);
+set.mfn.wrapMethod(Mod2.prototype, "initialize", Mod2.prototype.initialize);
+set.mfn.wrapMethod(Mod2.prototype, "init", Mod2.prototype.init);
+set.mfn.wrapMethod(Mod2.prototype, "set", Mod2.prototype.set);
+
+log.end();
+log.end();

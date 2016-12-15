@@ -1,0 +1,29 @@
+var track = require("track");
+
+var extend = function(o){
+	var name, Ext;
+
+	name = (o && o.name) || (this.name + "Ext");
+	if (o && o.name)
+		delete o.name; // otherwise it gets assigned to prototype...
+	
+	Ext = this.create_constructor(name);
+
+	// Constructor.props
+	Ext.assign(this);
+		track(Ext);
+		Ext.base = this;
+
+	// Setup inheritance
+	Ext.prototype = Object.create(this.prototype);
+		track(Ext.prototype);
+		Ext.prototype.constructor = Ext;
+		Ext.prototype.name = Ext.name[0].toLowerCase() + Ext.name.substring(1);
+
+	// Use .assign to add/override prototype properties
+	Ext.prototype.assign.apply(Ext.prototype, arguments);
+
+	return Ext;
+};
+
+module.exports = extend;

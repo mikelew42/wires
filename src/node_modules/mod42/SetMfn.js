@@ -1,0 +1,172 @@
+var Mfn = require("mod42/Mfn");
+var ExtendMfn = require("mod42/ExtendMfn");
+var is = require("is");
+var logger = require("log42");
+
+var log = logger();
+
+log.groupc("SetMfn.js");
+
+console.log("We need a set.pojo system for simply setting pojos with pojos, and not using special props overrides");
+
+var SetMfn = module.exports = Mfn.extend({
+	name: "SetMfn",
+	instantiate: function(){
+		if (this.set)
+			this.set.apply(this, arguments);
+		else
+			this.assign.apply(this, arguments);
+		this.init();
+	},
+	main: function(mod){
+		for (var i = 1; i < arguments.length; i++){
+			this.arg(mod, arguments[i]); // keep mod as first arg
+		}
+		this.then(mod);
+		return mod; // important
+	},
+	/* change this to objSpecial, and put the props[prop] override in that method, and then revert back to plain this.obj() for pojos*/
+	arg: function(mod, arg){
+		if (is.pojo(arg))
+			this.special(mod, arg);
+		else
+			this.other(mod, arg);
+	},
+	other: function(mod, arg){
+		if (is.def(arg))
+			console.warn("not sure how to set this", arg);
+	},
+	// uses the props overrides
+	special: function(mod, obj){
+		for (var i in obj){
+			if (this.props[i]){
+				this.props[i].call(this, mod, i, obj[i]);
+			} else {
+				this.prop(mod, i, obj[i]);
+			}
+		}
+		return mod;
+	},
+	obj: function(mod, obj){
+		for (var i in obj){
+			this.prop(mod, i, obj[i]);
+		}
+		return mod; // used in .objProp()
+	},
+	/* major problem: these special overrides are used even when "extending" pojos, and so "setting" props.log uses this override, and.. ugh */
+	props: {
+		log: function(mod, prop, value){
+			logger.install(mod, value);
+
+			if (value === true && this.rewrapAll){
+				this.rewrapAll(mod);
+			}
+		},
+		parent: function(mod, prop, value){
+			this.stdProp(mod, prop, value);
+		}
+	},
+	prop: function(mod, prop, value){
+		this.log.group(prop, this.log.inline(value));
+
+		var currentValue = mod[prop],
+			hasOwn = mod.hasOwnProperty(prop);
+
+		if (is.undef(currentValue)){
+			this.stdProp(mod, prop, value);
+
+		} else if (is.Class(currentValue)) {
+			this.ClassProp(mod, prop, value);
+
+		} else if (currentValue.clone && !hasOwn){
+			this.stdProp(mod, prop, mod[prop].clone(value));
+
+		} else if (currentValue.set) {
+			this.propWithSet(mod, prop, value);
+
+		} else if (is.fn(currentValue)) {
+			this.fnProp(mod, prop, value);
+
+		} else if (is.obj(currentValue)){
+			this.objProp(mod, prop, value);
+
+		} else if (is.arr(currentValue)){
+			this.arrProp(mod, prop, value);
+
+		} else {
+			this.stdProp(mod, prop, value);
+		}
+
+		this.log.end();
+	},
+	arrProp: function(mod, prop, value){
+		if (!mod.hasOwnProperty(prop)){
+			console.warn("always wear protection");
+		}
+
+		var current = mod[prop];
+		if (is.arr(value)){
+			current.push.apply(current, value);
+		} else if (is.pojo(value)){
+			// i think this should allow { push: ..., unshift: ..., etc }
+			// unshift: [] to call (apply) without args?
+			this.obj(current, value);
+		} else {
+			current.push(value);
+		}
+	},
+	propWithSet: function(mod, prop, value){
+		if (!mod.hasOwnProperty(prop) && !mod[prop].mfn){
+			this.stdProp(mod, prop, Object.create(mod[prop]).set(value));
+		} else {
+			// reassigning the value allows modules to override themselves...
+			this.stdProp(mod, prop, mod[prop].set(value));
+		}
+	},
+	ClassProp: function(mod, prop, value){
+		if (is.Class(value)){
+			this.stdProp(mod, prop, value);
+		} else if (mod.hasOwnProperty(prop)) {
+			mod[prop].prototype.set(value);
+		} else {
+			mod[prop] = mod[prop].extend(value); // protect mod's prototype
+		}
+	},
+	stdProp: function(mod, prop, value){
+		mod[prop] = value;
+
+		// if (value && is.fn(value.setup))
+		// 	value.setup(mod, prop);
+	},
+	fnProp: function(mod, prop, value){
+		if (is.fn(value)){
+			this.stdProp(mod, prop, value);
+		} else {
+			if (is.arr(value))
+				mod[prop].apply(mod, value);
+			else
+				mod[prop].call(mod, value);
+		}
+	},
+	// for obj props without .set... (usually a pojo, but not necessarily)
+	objProp: function(mod, prop, value){
+		if (is.obj(value)){
+			if (mod.hasOwnProperty(prop))
+				this.obj(mod[prop], value)
+			else
+				this.stdProp(mod, prop, this.obj(Object.create(mod[prop]), value));
+		} else {
+			console.warn("whoops");
+		}
+	},
+	then: function(){}
+}).assign({
+	extend: ExtendMfn.make()
+});
+
+var set = SetMfn.make();
+
+SetMfn.set = set;
+SetMfn.prototype.set = set;
+
+log.end();

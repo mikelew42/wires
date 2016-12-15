@@ -1,0 +1,18 @@
+var assign = require("./assign");
+var track = require("track");
+
+var create_constructor = function(name){
+	eval("var " + name + ";");
+	var constructor = eval("(" + name + " = function " + name + "(){\r\n\
+	if (!(this instanceof " + name + "))\r\n\
+		return new (" + name + ".bind.apply(" + name + ", [null].concat([].slice.call(arguments)) ));\r\n\
+	track(this); \r\n\
+	this._config && this._config.apply(this, arguments);\r\n\
+	this.instantiate.apply(this, arguments);\r\n\
+});");
+	constructor.assign = assign;
+	constructor.prototype.assign = assign;
+	return constructor;
+};
+
+module.exports = create_constructor;

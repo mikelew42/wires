@@ -1,0 +1,219 @@
+@import "normalize.css";
+html, body {
+	height: 100%;
+}
+body {
+	font-family: "Cabin";
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: "Raleway";
+}
+
+h1 {
+	margin-bottom: .5em;
+}
+
+p {
+	line-height: 1.35em;
+}
+
+.global-router {
+	& > .preview > .item {
+		background: #ccc;
+		margin-bottom: 0;
+		& > .icon {
+			background: #bbb;
+		}
+	}
+	& > .contents {
+		background: #ddd;
+		padding: 5px 5px 15px 5px;
+		display: flex;
+		flex-wrap: wrap;
+		&  > .route  {
+			& > .header {
+				& > .item {
+					font-size: 1em;
+				}
+			}
+		}
+	}
+}
+
+.route .label {
+	flex-grow: 1
+}
+
+.full {
+	background: white;
+}
+
+.fix-child-margins {
+	& > :last-child {
+		margin-bottom: 0;
+	}
+
+	& > :first-child {
+		margin-top: 0;
+	}
+}
+
+.padded {
+	padding: 0.8em 1.2em;
+	.fix-child-margins()
+}
+
+.spectrum-bg(@c){
+	&.d5 {
+		background: darken(@c, 50%);
+	}
+	&.d4 {
+		background: darken(@c, 40%);
+	}
+	&.d3 {
+		background: darken(@c, 30%);
+	}
+	&.d2 {
+		background: darken(@c, 20%);
+	}
+	&.d1 {
+		background: darken(@c, 10%);
+	}
+
+	background: @c;
+
+	&.l1 {
+		background: lighten(@c, 10%);
+	}
+	&.l2 {
+		background: lighten(@c, 20%);
+	}
+	&.l3 {
+		background: lighten(@c, 30%);
+	}
+	&.l4 {
+		background: lighten(@c, 40%);
+	}
+	&.l5 {
+		background: lighten(@c, 50%);
+	}
+}
+
+.spectrum-color(@c){
+	&.d5 {
+		color: darken(@c, 50%);
+	}
+	&.d4 {
+		color: darken(@c, 40%);
+	}
+	&.d3 {
+		color: darken(@c, 30%);
+	}
+	&.d2 {
+		color: darken(@c, 20%);
+	}
+	&.d1 {
+		color: darken(@c, 10%);
+	}
+
+	color: @c;
+
+	&.l1 {
+		color: lighten(@c, 10%);
+	}
+	&.l2 {
+		color: lighten(@c, 20%);
+	}
+	&.l3 {
+		color: lighten(@c, 30%);
+	}
+	&.l4 {
+		color: lighten(@c, 40%);
+	}
+	&.l5 {
+		color: lighten(@c, 50%);
+	}
+}
+
+.test-color {
+	.spectrum-bg(#ff6600);
+}
+
+@primary: #ff6600;
+
+.primary-bg {
+	.spectrum-bg(@primary);
+}
+
+.primary-color {
+	.spectrum-color(@primary);
+}
+
+.primary-bg {
+	color: white;
+	text-shadow: 1px 1px 1px rgba(0,0,0, 0.5);
+
+	&.dark {
+		color: #444;
+		text-shadow: 1px 1px 1px black;
+	}
+
+	h1& {
+		padding: 0.35em .7em;
+	}
+}
+	
+
+.primary-color {
+	background: #555;
+	text-shadow: 1px 1px 1px rgba(0,0,0, 0.5);
+	padding: 0.35em .7em;
+	h2& {
+		margin: 0.5em 0em;
+	}
+}
+
+.wires * {
+	border: 1px solid black;
+	padding: 1px;
+}
+
+.cols {
+	display: flex;
+	margin: 1em auto;
+	.col {
+		box-sizing: border-box;
+		.wires & {
+			padding: 1em;
+		}
+	}
+}
+
+.shade {
+	position: relative;
+}
+
+.shade:before {
+    content: "";
+    display: block;
+    box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.25), inset -1px -1px 1px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%,rgba(0,0,0,0.03) 100%);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.stack > *:not(:last-child) {
+	margin-bottom: 0;
+}
+.stack > *:not(:first-child) {
+	margin-top: 0;
+}
+
+.well {
+	background: #ddd;
+}
